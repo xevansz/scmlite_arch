@@ -1,7 +1,27 @@
+# Core
+fastapi>=0.95.0
+uvicorn[standard]>=0.21.0
+python-multipart>=0.0.6
+python-dotenv>=1.0.0
+
+# Database
+pymongo>=4.3.3
+motor>=3.3.0
+
+# Data Validation
+pydantic[email]>=1.10.7
+email-validator>=2.0.0
+
+# Authentication & Security
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.3.0
+python-multipart>=0.0.6
+
+# Kafka
 kafka-python>=2.0.2
-python-dotenv>=0.19.0
-fastapi
-uvicorn
-pymongo
-kafka-python
-python-dotenv
+
+# Development
+pytest>=7.3.1
+httpx>=0.24.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.0.0
