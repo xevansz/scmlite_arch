@@ -5,7 +5,7 @@ python-multipart>=0.0.6
 python-dotenv>=1.0.0
 
 # Database
-pymongo>=4.3.3
+pymongo[srv]==3.12
 motor>=3.3.0
 
 # Data Validation

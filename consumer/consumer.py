@@ -1,12 +1,17 @@
 import json
 import logging
 import signal
+import ssl
 import sys
 from kafka import KafkaConsumer
 from kafka.errors import KafkaError, NoBrokersAvailable
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, PyMongoError
 from time import sleep
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -22,7 +27,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 KAFKA_BOOTSTRAP_SERVERS = ['localhost:9092']
 KAFKA_TOPIC = 'shipment_data'
-MONGO_URI = 'mongodb://admin:password@localhost:27017/'
+MONGO_URI = os.getenv('MONGO_URI')
 DB_NAME = 'scmlitedb'
 COLLECTION_NAME = 'shipment_data'
 
@@ -73,6 +78,8 @@ class KafkaMongoConsumer:
             try:
                 self.mongo_client = MongoClient(
                     MONGO_URI,
+                    ssl=True,
+                    ssl_cert_reqs=ssl.CERT_NONE,
                     serverSelectionTimeoutMS=5000,
                     connectTimeoutMS=30000,
                     socketTimeoutMS=None,
