@@ -19,24 +19,19 @@ class Database:
         return cls._instance
     
     def _initialize_connection(self):
+        """Initialize MongoDB connection."""
         try:
-            # Connect with authentication in the connection string (preferred method for PyMongo 4.0+)
             self.client = MongoClient(
-                os.getenv('MONGO_URI'),
-                ssl = True,
-                ssl_cert_reqs = ssl.CERT_NONE,
+                os.getenv('MONGO_URI', 'mongodb://localhost:27017/'),
                 serverSelectionTimeoutMS=5000
             )
             
-            # Test the connection with authentication
-            self.client.admin.command('ping')
+            # Test the connection
+            self.client.server_info()
             self.db = self.client[os.getenv('DB_NAME')]
-            
-            logger.info("Successfully connected to MongoDB with authentication")
-            
-        except ConnectionFailure as e:
-            logger.error("Failed to connect to MongoDB: %s", e)
-            logger.error("Please ensure MongoDB is running and authentication is properly set up")
+            logger.info("Connected to MongoDB!")
+        except Exception as e:
+            logger.error(f"Failed to connect to MongoDB: {e}")
             raise
     
     def get_collection(self, collection_name: str):

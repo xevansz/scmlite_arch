@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
-from typing import Annotated, Optional, Dict, Any
+from typing import Dict, Any, Optional
 import logging
 
-from ..models.user_model import UserCreate, UserLogin, UserInDB
+from ..models.user_model import UserCreate, UserLogin
 from ..database import db
 from ..utils.security import (
     get_password_hash,
@@ -22,7 +22,34 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 async def signup(user: UserCreate):
     """Register a new user."""
     logger.info(f"Signup attempt for email: {user.email}")
-    
+    if await db.users.find_one({"email": user.email}):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    hashed_password = get_password_hash(user.password)
+    user_data = user.dict()
+    user_data["hashed_password"] = hashed_password
+    user_data["created_at"] = datetime.utcnow()
+    result = await db.users.insert_one(user_data)
+    return {"message": "User created successfully", "user_id": str(result.inserted_id)}
+
+@router.post("/login", response_model=dict)
+async def login(user: UserLogin):
+    """User login and get access token."""
+    logger.info(f"Login attempt for email: {user.email}")
+    user_data = await db.users.find_one({"email": user.email})
+    if not user_data or not verify_password(user.password, user_data["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user_data["_id"])}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
     # Check if user already exists
     users_collection = db.get_collection("users")
     if users_collection.find_one({"email": user.email}):

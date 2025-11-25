@@ -1,38 +1,31 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from datetime import datetime
+from typing import List, Dict, Any
 import logging
-from typing import List
+from datetime import datetime
 from bson import ObjectId
 
-from ..models.shipment_model import ShipmentCreate, ShipmentInDB, ShipmentUpdate
+from ..models.shipment_model import ShipmentCreate, ShipmentInDB
 from ..database import db
-from .auth_routes import get_current_user
+from ..utils.security import get_current_user
 
 router = APIRouter(prefix="/shipments", tags=["shipments"])
 logger = logging.getLogger(__name__)
 
-@router.post("/create", response_model=dict)
+@router.post("/create", response_model=Dict[str, Any])
 async def create_shipment(
-    shipment: ShipmentCreate,
-    current_user: dict = Depends(get_current_user)
-):
+    shipment: ShipmentCreate, 
+    current_user: Dict[str, Any] = Depends(get_current_user)
+) -> Dict[str, Any]:
     """Create a new shipment."""
-    logger.info(f"Creating new shipment for user: {current_user['email']}")
-    
-    shipment_dict = shipment.model_dump()
-    shipment_dict.update({
-        "created_by": str(current_user["_id"]),
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
-    })
-    
     try:
-        shipments_collection = db.get_collection("shipments")
-        result = shipments_collection.insert_one(shipment_dict)
+        logger.info(f"Creating new shipment for user: {current_user['email']}")
+        shipment_data = shipment.dict()
+        shipment_data["created_by"] = current_user["email"]
+        shipment_data["created_at"] = datetime.utcnow()
         
-        logger.info(f"Shipment created with ID: {result.inserted_id}")
+        result = await db.shipments.insert_one(shipment_data)
         return {
-            "message": "Shipment created successfully",
+            "message": "Shipment created successfully", 
             "shipment_id": str(result.inserted_id)
         }
     except Exception as e:
@@ -42,30 +35,24 @@ async def create_shipment(
             detail="Error creating shipment"
         )
 
-@router.get("/all", response_model=List[ShipmentInDB])
+@router.get("/all", response_model=List[Dict[str, Any]])
 async def get_all_shipments(
-    skip: int = 0, 
-    limit: int = 100,
-    current_user: dict = Depends(get_current_user)
-):
-    """Get all shipments (paginated)."""
-    logger.info(f"Fetching shipments for user: {current_user['email']}")
-    
+    current_user: Dict[str, Any] = Depends(get_current_user)
+) -> List[Dict[str, Any]]:
+    """Get all shipments for the current user."""
     try:
-        shipments_collection = db.get_collection("shipments")
-        
-        # Only show shipments created by the current user
-        cursor = shipments_collection.find({"created_by": str(current_user["_id"])})
-        cursor = cursor.skip(skip).limit(limit)
-        
+        logger.info(f"Fetching all shipments for user: {current_user['email']}")
         shipments = []
-        for doc in cursor:
-            # Convert ObjectId to string for the response
-            doc["id"] = str(doc.pop("_id"))
-            shipments.append(ShipmentInDB(**doc))
-            
-        logger.info(f"Found {len(shipments)} shipments")
+        async for shipment in db.shipments.find({"created_by": current_user["email"]}):
+            shipment["_id"] = str(shipment["_id"])
+            shipments.append(shipment)
         return shipments
+    except Exception as e:
+        logger.error(f"Error fetching shipments: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error fetching shipments"
+        )
     except Exception as e:
         logger.error(f"Error fetching shipments: {e}")
         raise HTTPException(
@@ -76,16 +63,16 @@ async def get_all_shipments(
 @router.get("/{shipment_id}", response_model=ShipmentInDB)
 async def get_shipment(
     shipment_id: str,
-    current_user: dict = Depends(get_current_user)
-):
+    current_user: Dict[str, Any] = Depends(get_current_user)
+) -> ShipmentInDB:
     """Get a specific shipment by ID."""
     logger.info(f"Fetching shipment {shipment_id} for user {current_user['email']}")
     
     try:
         shipments_collection = db.get_collection("shipments")
-        shipment = shipments_collection.find_one({
+        shipment = await shipments_collection.find_one({
             "_id": ObjectId(shipment_id),
-            "created_by": str(current_user["_id"])
+            "created_by": current_user["id"]
         })
         
         if not shipment:

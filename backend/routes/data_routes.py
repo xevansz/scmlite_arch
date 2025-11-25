@@ -1,101 +1,73 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
-from datetime import datetime, timedelta
-from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Dict, Any, Optional
 import logging
+from datetime import datetime
 from bson import ObjectId
 
-from ..models.data_model import DataPointInDB, DataQueryParams
 from ..database import db
-from .auth_routes import get_current_user
+from ..utils.security import get_current_user
 
-router = APIRouter(prefix="/data", tags=["data"])
+router = APIRouter(prefix="/data", tags=["device_data"])
 logger = logging.getLogger(__name__)
 
-@router.get("/all", response_model=List[DataPointInDB])
+@router.get("/all", response_model=List[Dict[str, Any]])
 async def get_all_data(
-    limit: int = Query(100, le=1000, description="Number of records to return (max 1000)"),
-    current_user: dict = Depends(get_current_user)
-):
-    """Get all data points (paginated)."""
-    logger.info(f"Fetching up to {limit} data points")
-    
+    current_user: Dict[str, Any] = Depends(get_current_user)
+) -> List[Dict[str, Any]]:
+    """Get all device data."""
     try:
-        data_collection = db.get_collection("device_data")
-        cursor = data_collection.find().sort("timestamp", -1).limit(limit)
-        
-        data_points = []
-        for doc in cursor:
-            # Convert ObjectId to string for the response
-            doc["id"] = str(doc.pop("_id"))
-            data_points.append(DataPointInDB(**doc))
-            
-        logger.info(f"Found {len(data_points)} data points")
-        return data_points
+        logger.info(f"Fetching all device data for user: {current_user['email']}")
+        data = []
+        async for item in db.device_data.find():
+            item["_id"] = str(item["_id"])
+            data.append(item)
+        return data
     except Exception as e:
-        logger.error(f"Error fetching data: {e}")
+        logger.error(f"Error fetching device data: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error fetching data"
+            detail="Error fetching device data"
         )
 
-@router.get("/latest", response_model=DataPointInDB)
+@router.get("/latest", response_model=Dict[str, Any])
 async def get_latest_data(
-    current_user: dict = Depends(get_current_user)
-):
-    """Get the most recent data point."""
-    logger.info("Fetching latest data point")
-    
+    current_user: Dict[str, Any] = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Get the latest data point from all devices."""
     try:
-        data_collection = db.get_collection("device_data")
-        latest = data_collection.find_one(
-            {},
+        logger.info(f"Fetching latest device data for user: {current_user['email']}")
+        latest = await db.device_data.find_one(
             sort=[("timestamp", -1)]
         )
-        
-        if not latest:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="No data available"
-            )
-            
-        # Convert ObjectId to string for the response
-        latest["id"] = str(latest.pop("_id"))
-        return DataPointInDB(**latest)
-        
+        if latest:
+            latest["_id"] = str(latest["_id"])
+        return latest or {}
     except Exception as e:
         logger.error(f"Error fetching latest data: {e}")
-        if isinstance(e, HTTPException):
-            raise
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error fetching latest data"
         )
 
-@router.get("/device/{device_id}", response_model=List[DataPointInDB])
+@router.get("/device/{device_id}", response_model=List[Dict[str, Any]])
 async def get_device_data(
-    device_id: int,
-    start_time: Optional[datetime] = Query(None, description="Start time filter"),
-    end_time: Optional[datetime] = Query(None, description="End time filter"),
-    limit: int = Query(100, le=1000, description="Number of records to return (max 1000)"),
-    current_user: dict = Depends(get_current_user)
-):
-    """Get data points for a specific device with optional time filtering."""
-    logger.info(f"Fetching data for device {device_id}")
-    
+    device_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+) -> List[Dict[str, Any]]:
+    """Get all data for a specific device."""
     try:
-        query = {"device_id": device_id}
-        
-        # Add time range filter if provided
-        time_filter = {}
-        if start_time:
-            time_filter["$gte"] = start_time
-        if end_time:
-            time_filter["$lte"] = end_time
-            
-        if time_filter:
-            query["timestamp"] = time_filter
-        
-        data_collection = db.get_collection("device_data")
+        logger.info(f"Fetching data for device {device_id} for user: {current_user['email']}")
+        data = []
+        async for item in db.device_data.find({"device_id": device_id}):
+            item["_id"] = str(item["_id"])
+            data.append(item)
+        return data
+    except Exception as e:
+        logger.error(f"Error fetching device data: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error fetching data for device {device_id}"
+        )
         cursor = data_collection.find(query).sort("timestamp", -1).limit(limit)
         
         data_points = []

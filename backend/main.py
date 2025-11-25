@@ -1,13 +1,14 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer
 import logging
 import uvicorn
-from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Import routers
-from backend.routes import auth_routes, shipment_routes, data_routes
-from backend.database import db
+from .routes import auth_routes, shipment_routes, data_routes
+from .database import db
 
 # Configure logging
 logging.basicConfig(
@@ -43,25 +44,6 @@ app.add_middleware(
 app.include_router(auth_routes.router)
 app.include_router(shipment_routes.router)
 app.include_router(data_routes.router)
-
-# Health check endpoint
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    try:
-        # Test database connection
-        db.client.admin.command('ping')
-        return {
-            "status": "healthy",
-            "timestamp": datetime.utcnow(),
-            "database": "connected"
-        }
-    except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Service unavailable"
-        )
 
 # Startup event
 @app.on_event("startup")
