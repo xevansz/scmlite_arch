@@ -25,11 +25,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configuration
-KAFKA_BOOTSTRAP_SERVERS = ['localhost:9092']
-KAFKA_TOPIC = 'shipment_data'
+KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092').split(',')
+KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'shipment_data')
 MONGO_URI = os.getenv('MONGO_URI')
-DB_NAME = 'scmlitedb'
-COLLECTION_NAME = 'shipment_data'
+DB_NAME = os.getenv('DB_NAME', 'scmlitedb')
+COLLECTION_NAME = os.getenv('COLLECTION_NAME', 'shipment_data')
 
 class KafkaMongoConsumer:
     def __init__(self):
@@ -78,13 +78,10 @@ class KafkaMongoConsumer:
             try:
                 self.mongo_client = MongoClient(
                     MONGO_URI,
-                    ssl=True,
-                    ssl_cert_reqs=ssl.CERT_NONE,
                     serverSelectionTimeoutMS=5000,
                     connectTimeoutMS=30000,
-                    socketTimeoutMS=None,
-                    connect=False,
-                    maxPoolsize=1
+                    socketTimeoutMS=30000,
+                    maxPoolSize=10
                 )
                 # Force connection to verify it works
                 self.mongo_client.server_info()
