@@ -56,8 +56,8 @@ async def startup_db_client():
         
         # Create indexes
         db.get_collection("users").create_index("email", unique=True)
-        db.get_collection("device_data").create_index("device_id")
-        db.get_collection("device_data").create_index("timestamp")
+        db.get_collection("shipments_usr").create_index("device_id")
+        db.get_collection("shipments_usr").create_index("timestamp")
         
     except Exception as e:
         logger.error(f"Error connecting to MongoDB: {e}")

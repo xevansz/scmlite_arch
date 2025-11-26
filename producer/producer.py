@@ -16,11 +16,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configuration
-SOCKET_SERVER = os.getenv('SOCKET_SERVER', '192.168.1.4')
-SOCKET_PORT = os.getenv('SOCKET_PORT', 5050)
+SOCKET_SERVER = os.getenv('SOCKET_SERVER', '127.0.1.1')
+SOCKET_PORT = int(os.getenv('SOCKET_PORT', 5050))
 KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092').split(',')
 KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'shipment_data')
-BUFFER_SIZE = os.getenv('BUFFER_SIZE', 4096)
+BUFFER_SIZE = int(os.getenv('BUFFER_SIZE', 4096))
 
 def create_kafka_producer():
     """Create and return a Kafka producer instance."""

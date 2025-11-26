@@ -58,7 +58,7 @@ async def get_device_data(
     try:
         logger.info(f"Fetching data for device {device_id} for user: {current_user['email']}")
         data = []
-        async for item in db.device_data.find({"device_id": device_id}):
+        async for item in db.device_data.find({"Device_ID": device_id}):
             item["_id"] = str(item["_id"])
             data.append(item)
         return data
@@ -68,17 +68,16 @@ async def get_device_data(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error fetching data for device {device_id}"
         )
-        cursor = data_collection.find(query).sort("timestamp", -1).limit(limit)
+        # Find the latest document for the device
+        latest = await db.device_data.find_one(
+            {"Device_ID": device_id},
+            sort=[("timestamp", -1)]
+        )
         
-        data_points = []
-        for doc in cursor:
-            # Convert ObjectId to string for the response
-            doc["id"] = str(doc.pop("_id"))
-            data_points.append(DataPointInDB(**doc))
-            
-        logger.info(f"Found {len(data_points)} data points for device {device_id}")
-        return data_points
-        
+        if latest:
+            latest["_id"] = str(latest["_id"])
+            return [latest]
+        return []
     except Exception as e:
         logger.error(f"Error fetching data for device {device_id}: {e}")
         raise HTTPException(

@@ -29,7 +29,7 @@ KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
 KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'shipment_data')
 MONGO_URI = os.getenv('MONGO_URI')
 DB_NAME = os.getenv('DB_NAME', 'scmlitedb')
-COLLECTION_NAME = os.getenv('COLLECTION_NAME', 'shipment_data')
+COLLECTION_NAME = os.getenv('COLLECTION_NAME', 'device_data')
 
 class KafkaMongoConsumer:
     def __init__(self):

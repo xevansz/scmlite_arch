@@ -2,7 +2,6 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 import logging
 import os
-import ssl
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,7 +21,7 @@ class Database:
         """Initialize MongoDB connection."""
         try:
             self.client = MongoClient(
-                os.getenv('MONGO_URI', 'mongodb://localhost:27017/'),
+                os.getenv('MONGO_URI'),
                 serverSelectionTimeoutMS=5000
             )
             
@@ -30,7 +29,7 @@ class Database:
             self.client.server_info()
             self.db = self.client[os.getenv('DB_NAME')]
             logger.info("Connected to MongoDB!")
-        except Exception as e:
+        except ConnectionFailure as e:
             logger.error(f"Failed to connect to MongoDB: {e}")
             raise
     

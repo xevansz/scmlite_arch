@@ -23,7 +23,7 @@ async def create_shipment(
         shipment_data["created_by"] = current_user["email"]
         shipment_data["created_at"] = datetime.utcnow()
         
-        result = await db.shipments.insert_one(shipment_data)
+        result = await db.shipments_usr.insert_one(shipment_data)
         return {
             "message": "Shipment created successfully", 
             "shipment_id": str(result.inserted_id)
@@ -43,16 +43,10 @@ async def get_all_shipments(
     try:
         logger.info(f"Fetching all shipments for user: {current_user['email']}")
         shipments = []
-        async for shipment in db.shipments.find({"created_by": current_user["email"]}):
+        async for shipment in db.shipments_usr.find({"created_by": current_user["email"]}):
             shipment["_id"] = str(shipment["_id"])
             shipments.append(shipment)
         return shipments
-    except Exception as e:
-        logger.error(f"Error fetching shipments: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error fetching shipments"
-        )
     except Exception as e:
         logger.error(f"Error fetching shipments: {e}")
         raise HTTPException(
@@ -69,7 +63,7 @@ async def get_shipment(
     logger.info(f"Fetching shipment {shipment_id} for user {current_user['email']}")
     
     try:
-        shipments_collection = db.get_collection("shipments")
+        shipments_collection = db.get_collection("shipments_usr")
         shipment = await shipments_collection.find_one({
             "_id": ObjectId(shipment_id),
             "created_by": current_user["id"]
