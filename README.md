@@ -23,11 +23,6 @@ A real-time data streaming pipeline that processes IoT device data through Kafka
    docker network create scmlite-net
    ```
 
-2. **Create volume for MongoDB**
-   ```bash
-   docker volume create mongo-data
-   ```
-
 3. **Start MongoDB**
    ```bash
    docker run -d \
@@ -49,11 +44,6 @@ A real-time data streaming pipeline that processes IoT device data through Kafka
      -e ZOOKEEPER_CLIENT_PORT=2181 \
      -e ZOOKEEPER_TICK_TIME=2000 \
      wurstmeister/zookeeper
-   ```
-
-5. **Wait for Zookeeper to be ready**
-   ```bash
-   Start-Sleep -Seconds 5
    ```
 
 6. **Start Kafka**
@@ -103,7 +93,10 @@ scmlite_arch/
 - **MongoDB**:
   - Host: `localhost:27017`
   - Database: `scmlitedb`
-  - Collection: `shipment_data`
+  - Collections: 
+    - `users` - For user authentication
+    - `shipments_usr` - For shipment information
+    - `device_data` - For device telemetry data
   - Credentials: `admin/password123`
 
 - **Kafka**:
