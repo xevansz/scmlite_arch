@@ -27,7 +27,7 @@ def get_all_data(
         skip = (page - 1) * limit
         
         # Get the collection
-        collection = db.get_collection("device_data")
+        collection = db.get_collection("shipment_data")
         
         # Get total count for pagination
         total = collection.count_documents({})
@@ -60,7 +60,7 @@ def get_latest_data(
     """Get the latest data point from all devices."""
     try:
         logger.info(f"Fetching latest device data for user: {current_user['email']}")
-        collection = db.get_collection("device_data")
+        collection = db.get_collection("shipment_data")
         latest = collection.find_one(sort=[("timestamp", -1)])
         if latest:
             latest["_id"] = str(latest["_id"])
@@ -93,7 +93,7 @@ def get_device_data(
         skip = (page - 1) * limit
         
         # Get the collection
-        collection = db.get_collection("device_data")
+        collection = db.get_collection("shipment_data")
         
         # Convert device_id to int for query (matching the data format)
         try:

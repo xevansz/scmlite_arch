@@ -34,7 +34,7 @@ export function Login() {
     <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="mb-8">
-          <h1 className="text-white mb-2">Login - Light Page</h1>
+          <h1 className="text-white mb-2">Login</h1>
           <p className="text-[#8b92a7]">Welcome back! Please login to continue</p>
         </div>
 

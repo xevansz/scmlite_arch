@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from datetime import datetime, date
+from datetime import datetime, datetime
 from typing import Optional, List
 from enum import Enum
 
@@ -25,7 +25,7 @@ class ShipmentBase(BaseModel):
     serial_numbers: List[str] = Field(..., description="List of serial numbers of goods")
     container_number: str = Field(..., description="Container number")
     goods_type: str = Field(..., description="Type of goods being shipped")
-    expected_delivery_date: date = Field(..., description="Expected date of delivery")
+    expected_delivery_date: datetime = Field(..., description="Expected date of delivery")
     delivery_number: str = Field(..., description="Delivery reference number")
     batch_id: str = Field(..., description="Batch or lot ID of the goods")
     description: Optional[str] = Field(None, description="Additional shipment details")
@@ -47,4 +47,4 @@ class ShipmentUpdate(BaseModel):
     status: Optional[ShipmentStatus] = None
     description: Optional[str] = None
     route: Optional[RouteDetails] = None
-    expected_delivery_date: Optional[date] = None
+    expected_delivery_date: Optional[datetime] = None
