@@ -42,16 +42,40 @@ async def get_all_shipments(
     """Get all shipments for the current user."""
     try:
         logger.info(f"Fetching all shipments for user: {current_user['email']}")
+        
+        # Get the collection
+        collection = db.get_collection("shipment_data")
+        logger.info(f"Using collection: {collection.name}")
+        
+        # Debug: Log the first few documents to verify the collection has data
+        count = await collection.count_documents({})
+        logger.info(f"Total documents in collection: {count}")
+        
+        if count > 0:
+            sample = await collection.find_one({})
+            logger.info(f"Sample document: {sample}")
+        
+        # Query for user's shipments
+        query = {"created_by": current_user["email"]}
+        logger.info(f"Query: {query}")
+        
+        # Execute query
+        cursor = collection.find(query)
         shipments = []
-        async for shipment in db.shipments_usr.find({"created_by": current_user["email"]}):
+        
+        # Convert ObjectId to string for JSON serialization
+        async for shipment in cursor:
             shipment["_id"] = str(shipment["_id"])
             shipments.append(shipment)
+            
+        logger.info(f"Found {len(shipments)} shipments")
         return shipments
+        
     except Exception as e:
-        logger.error(f"Error fetching shipments: {e}")
+        logger.error(f"Error in get_all_shipments: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error fetching shipments"
+            detail=f"Error fetching shipments: {str(e)}"
         )
 
 @router.get("/{shipment_id}", response_model=ShipmentInDB)
