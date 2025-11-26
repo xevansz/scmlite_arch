@@ -17,7 +17,7 @@ class RouteDetails(BaseModel):
     estimated_time: Optional[str] = None
 
 class ShipmentBase(BaseModel):
-    shipment_number: str = Field(..., description="Unique identifier for the shipment")
+    shipment_number: str = Field(...,min_length=5, max_length=20, description="Unique identifier for the shipment")
     route: RouteDetails
     device_id: str = Field(..., description="ID of the tracking device assigned to this shipment")
     po_number: str = Field(..., description="Purchase Order number")

@@ -47,7 +47,7 @@ app.include_router(data_routes.router)
 
 # Startup event
 @app.on_event("startup")
-async def startup_db_client():
+def startup_db_client():
     """Initialize database connection on startup."""
     try:
         # Test the connection
@@ -55,9 +55,9 @@ async def startup_db_client():
         logger.info("Connected to MongoDB!")
         
         # Create indexes
-        db.get_collection("users").create_index("email", unique=True)
-        db.get_collection("shipments_usr").create_index("device_id")
-        db.get_collection("shipments_usr").create_index("timestamp")
+        db.create_index("users", "email", unique=True)
+        db.create_index("shipments_usr", "device_id")
+        db.create_index("shipments_usr", "timestamp")
         
     except Exception as e:
         logger.error(f"Error connecting to MongoDB: {e}")
@@ -65,7 +65,7 @@ async def startup_db_client():
 
 # Shutdown event
 @app.on_event("shutdown")
-async def shutdown_db_client():
+def shutdown_db_client():
     """Close database connection on shutdown."""
     db.close_connection()
     logger.info("MongoDB connection closed.")

@@ -27,16 +27,23 @@ class Database:
             
             # Test the connection
             self.client.server_info()
-            self.db = self.client[os.getenv('DB_NAME')]
+            self.db = self.client[os.getenv('DB_NAME', 'scmlitedb')]
             logger.info("Connected to MongoDB!")
         except ConnectionFailure as e:
             logger.error(f"Failed to connect to MongoDB: {e}")
             raise
     
     def get_collection(self, collection_name: str):
+        """Get a collection."""
         return self.db[collection_name]
     
+    def create_index(self, collection_name: str, index_key, **kwargs):
+        """Create an index on a collection."""
+        collection = self.get_collection(collection_name)
+        return collection.create_index(index_key, **kwargs)
+    
     def close_connection(self):
+        """Close the MongoDB connection."""
         if hasattr(self, 'client'):
             self.client.close()
             logger.info("MongoDB connection closed")

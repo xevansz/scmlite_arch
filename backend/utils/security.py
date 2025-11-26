@@ -1,7 +1,8 @@
 import logging
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from passlib.context import CryptContext
+import hashlib
+import os
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from typing import Optional
@@ -17,7 +18,30 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against a hash."""
+    salt = hashed_password[:32]  # Get the salt from the stored hash
+    return get_password_hash_with_salt(plain_password, salt) == hashed_password
+
+def get_password_hash(password: str) -> str:
+    """Generate a password hash with a random salt."""
+    salt = os.urandom(16).hex()  # Generate a random salt
+    return get_password_hash_with_salt(password, salt)
+
+def get_password_hash_with_salt(password: str, salt: str) -> str:
+    """Generate a password hash with the given salt."""
+    # Convert password to bytes if it's a string
+    if isinstance(password, str):
+        password = password.encode('utf-8')
+    # Create a hash using SHA-256 with the salt
+    hashed = hashlib.pbkdf2_hmac(
+        'sha256',
+        password,
+        salt.encode('utf-8'),
+        100000  # Number of iterations
+    )
+    # Return salt + hash as a single string
+    return salt + hashed.hex()
 
 # JWT settings
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
@@ -27,13 +51,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # OAuth2 scheme
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against a hash."""
-    return pwd_context.verify(plain_password, hashed_password)
-
-def get_password_hash(password: str) -> str:
-    """Generate a password hash."""
-    return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT access token."""

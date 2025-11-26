@@ -1,6 +1,13 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict, Any
+
+class PaginatedResponse(BaseModel):
+    data: List[Dict[str, Any]]
+    total: int
+    page: int
+    limit: int
+    total_pages: int
 
 class DataPointBase(BaseModel):
     device_id: int
