@@ -96,7 +96,7 @@ scmlite_arch/
   - Collections: 
     - `users` - For user authentication
     - `shipments_usr` - For shipment information
-    - `device_data` - For device telemetry data
+    - `shipment_data` - For device telemetry data
   - Credentials: `admin/password123`
 
 - **Kafka**:

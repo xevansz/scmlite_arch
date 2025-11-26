@@ -4,6 +4,7 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { CreateShipment } from './pages/CreateShipment';
 import { DeviceData } from './pages/DeviceData';
+import { DeviceDataPage } from './pages/DeviceDataPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
@@ -30,7 +31,15 @@ export default function App() {
           }
         />
         <Route
-          path="/device-data/:device_id?"
+          path="/device-data"
+          element={
+            <ProtectedRoute>
+              <DeviceDataPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/device-data/:device_id"
           element={
             <ProtectedRoute>
               <DeviceData />

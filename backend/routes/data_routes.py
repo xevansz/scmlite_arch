@@ -5,7 +5,7 @@ from ..models.data_model import PaginatedResponse
 from ..database import db
 from ..utils.security import get_current_user
 
-router = APIRouter(prefix="/data", tags=["device_data"])
+router = APIRouter(prefix="/data", tags=["shipment_data"])
 logger = logging.getLogger(__name__)
 
 @router.get("/all", response_model=PaginatedResponse)

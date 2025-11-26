@@ -26,6 +26,12 @@ export function Navigation() {
           >
             Create Shipment
           </Link>
+          <Link 
+            to="/device-data" 
+            className="text-[#8b92a7] hover:text-white transition-colors"
+          >
+            Device Data
+          </Link>
         </div>
         <button
           onClick={handleLogout}
