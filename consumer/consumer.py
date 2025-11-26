@@ -116,7 +116,6 @@ class KafkaMongoConsumer:
             return
 
         try:
-            # Add processing timestamp
             data = message.value
             if not isinstance(data, dict):
                 logger.warning(f"Unexpected message format: {data}")

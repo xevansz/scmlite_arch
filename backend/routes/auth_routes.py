@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any
+from datetime import datetime, timezone
 import logging
-from pymongo import ReturnDocument
 
 from ..models.user_model import UserCreate, UserLogin
 from ..database import db
@@ -16,7 +14,7 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 logger = logging.getLogger(__name__)
 
 @router.post("/signup", response_model=dict)
-async def signup(user: UserCreate):
+def signup(user: UserCreate):
     """Register a new user."""
     try:
         users_collection = db.get_collection("users")
@@ -47,7 +45,7 @@ async def signup(user: UserCreate):
         )
 
 @router.post("/login", response_model=dict)
-async def login(user: UserLogin):
+def login(user: UserLogin):
     """User login and get access token."""
     try:
         users_collection = db.get_collection("users")
@@ -80,6 +78,6 @@ async def login(user: UserLogin):
         )
 
 @router.get("/me", response_model=dict)
-async def read_users_me(current_user: dict = Depends(get_current_user)):
+def read_users_me(current_user: dict = Depends(get_current_user)):
     """Get current user information."""
     return current_user

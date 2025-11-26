@@ -72,7 +72,7 @@ def shutdown_db_client():
 
 # Root endpoint
 @app.get("/")
-async def root():
+def root():
     """Root endpoint with API information."""
     return {
         "message": "Welcome to SCMLite API",

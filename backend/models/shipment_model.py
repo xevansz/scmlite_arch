@@ -46,5 +46,5 @@ class ShipmentInDB(ShipmentBase):
 class ShipmentUpdate(BaseModel):
     status: Optional[ShipmentStatus] = None
     description: Optional[str] = None
-    rooute: Optional[RouteDetails] = None
+    route: Optional[RouteDetails] = None
     expected_delivery_date: Optional[date] = None

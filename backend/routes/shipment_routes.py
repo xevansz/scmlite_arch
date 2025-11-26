@@ -12,7 +12,7 @@ router = APIRouter(prefix="/shipments", tags=["shipments"])
 logger = logging.getLogger(__name__)
 
 @router.post("/create", response_model=Dict[str, Any])
-async def create_shipment(
+def create_shipment(
     shipment: ShipmentCreate, 
     current_user: Dict[str, Any] = Depends(get_current_user)
 ) -> Dict[str, Any]:
@@ -23,7 +23,8 @@ async def create_shipment(
         shipment_data["created_by"] = current_user["email"]
         shipment_data["created_at"] = datetime.utcnow()
         
-        result = await db.shipments_usr.insert_one(shipment_data)
+        shipments_collection = db.get_collection("shipments_usr")
+        result = shipments_collection.insert_one(shipment_data)
         return {
             "message": "Shipment created successfully", 
             "shipment_id": str(result.inserted_id)
@@ -36,7 +37,7 @@ async def create_shipment(
         )
 
 @router.get("/all", response_model=List[Dict[str, Any]])
-async def get_all_shipments(
+def get_all_shipments(
     current_user: Dict[str, Any] = Depends(get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get all shipments for the current user."""
@@ -44,27 +45,17 @@ async def get_all_shipments(
         logger.info(f"Fetching all shipments for user: {current_user['email']}")
         
         # Get the collection
-        collection = db.get_collection("shipment_data")
-        logger.info(f"Using collection: {collection.name}")
-        
-        # Debug: Log the first few documents to verify the collection has data
-        count = await collection.count_documents({})
-        logger.info(f"Total documents in collection: {count}")
-        
-        if count > 0:
-            sample = await collection.find_one({})
-            logger.info(f"Sample document: {sample}")
+        collection = db.get_collection("shipments_usr")
         
         # Query for user's shipments
         query = {"created_by": current_user["email"]}
-        logger.info(f"Query: {query}")
         
         # Execute query
         cursor = collection.find(query)
         shipments = []
         
         # Convert ObjectId to string for JSON serialization
-        async for shipment in cursor:
+        for shipment in cursor:
             shipment["_id"] = str(shipment["_id"])
             shipments.append(shipment)
             
@@ -79,7 +70,7 @@ async def get_all_shipments(
         )
 
 @router.get("/{shipment_id}", response_model=ShipmentInDB)
-async def get_shipment(
+def get_shipment(
     shipment_id: str,
     current_user: Dict[str, Any] = Depends(get_current_user)
 ) -> ShipmentInDB:
@@ -88,9 +79,9 @@ async def get_shipment(
     
     try:
         shipments_collection = db.get_collection("shipments_usr")
-        shipment = await shipments_collection.find_one({
+        shipment = shipments_collection.find_one({
             "_id": ObjectId(shipment_id),
-            "created_by": current_user["id"]
+            "created_by": current_user["email"]
         })
         
         if not shipment:
