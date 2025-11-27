@@ -14,22 +14,14 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository_owner }}
+  IMAGE_NAME: scmlite-all
 
 jobs:
-  build-and-push:
+  build-and-push-full:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
-    strategy:
-      matrix:
-        service:
-          - socket-server
-          - producer
-          - consumer
-          - backend
-          - frontend
 
     steps:
       - name: Checkout repository
@@ -49,7 +41,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/scmlite-${{ matrix.service }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -58,158 +50,16 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Docker image
+      - name: Build and push full-stack image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ${{ matrix.service == 'socket-server' && 'socket_server/Dockerfile' || format('{0}/Dockerfile', matrix.service) }}
+          file: Dockerfile.full
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            BUILDKIT_INLINE_CACHE=1
-
-  build-all:
-    runs-on: ubuntu-latest
-    needs: build-and-push
-    if: github.event_name != 'pull_request'
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Create docker-compose file with image tags
-        run: |
-          cat > docker-compose.prod.yml << EOF
-          version: '3.8'
-          
-          services:
-            socket-server:
-              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/scmlite-socket-server:latest
-              container_name: scmlite-socket-server
-              ports:
-                - "5050:5050"
-              networks:
-                - scmlite-net
-              restart: unless-stopped
-          
-            producer:
-              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/scmlite-producer:latest
-              container_name: scmlite-producer
-              environment:
-                - SOCKET_SERVER=socket-server
-                - SOCKET_PORT=5050
-                - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-                - KAFKA_TOPIC=\${KAFKA_TOPIC:-shipment_data}
-                - BUFFER_SIZE=\${BUFFER_SIZE:-4096}
-              depends_on:
-                - socket-server
-                - kafka
-              networks:
-                - scmlite-net
-              restart: unless-stopped
-          
-            consumer:
-              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/scmlite-consumer:latest
-              container_name: scmlite-consumer
-              environment:
-                - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-                - KAFKA_TOPIC=\${KAFKA_TOPIC:-shipment_data}
-                - MONGO_URI=\${MONGO_URI}
-                - DB_NAME=\${DB_NAME:-scmlitedb}
-                - COLLECTION_NAME=\${COLLECTION_NAME:-shipment_data}
-              depends_on:
-                - kafka
-                - mongodb
-              networks:
-                - scmlite-net
-              restart: unless-stopped
-          
-            backend:
-              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/scmlite-backend:latest
-              container_name: scmlite-backend
-              ports:
-                - "8000:8000"
-              environment:
-                - MONGO_URI=\${MONGO_URI}
-                - DB_NAME=\${DB_NAME:-scmlitedb}
-                - JWT_SECRET=\${JWT_SECRET}
-              depends_on:
-                - mongodb
-              networks:
-                - scmlite-net
-              restart: unless-stopped
-          
-            frontend:
-              image: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/scmlite-frontend:latest
-              container_name: scmlite-frontend
-              ports:
-                - "3000:80"
-              depends_on:
-                - backend
-              networks:
-                - scmlite-net
-              restart: unless-stopped
-          
-            mongodb:
-              image: mongo:7
-              container_name: scmlite-mongodb
-              ports:
-                - "27017:27017"
-              environment:
-                - MONGO_INITDB_ROOT_USERNAME=\${MONGO_ROOT_USERNAME:-admin}
-                - MONGO_INITDB_ROOT_PASSWORD=\${MONGO_ROOT_PASSWORD:-password123}
-              volumes:
-                - mongodb-data:/data/db
-              networks:
-                - scmlite-net
-              restart: unless-stopped
-          
-            zookeeper:
-              image: wurstmeister/zookeeper:latest
-              container_name: scmlite-zookeeper
-              ports:
-                - "2181:2181"
-              environment:
-                - ZOOKEEPER_CLIENT_PORT=2181
-                - ZOOKEEPER_TICK_TIME=2000
-              networks:
-                - scmlite-net
-              restart: unless-stopped
-          
-            kafka:
-              image: wurstmeister/kafka:2.13-2.8.1
-              container_name: scmlite-kafka
-              ports:
-                - "9092:9092"
-              environment:
-                - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-                - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092
-                - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
-                - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
-                - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
-              depends_on:
-                - zookeeper
-              networks:
-                - scmlite-net
-              restart: unless-stopped
-          
-          networks:
-            scmlite-net:
-              driver: bridge
-          
-          volumes:
-            mongodb-data:
-          EOF
-
-      - name: Upload docker-compose.prod.yml
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-compose-prod
-          path: docker-compose.prod.yml
+            ${{ secrets.VITE_API_URL && format('VITE_API_URL={0}', secrets.VITE_API_URL) }}
 

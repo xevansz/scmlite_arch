@@ -46,7 +46,6 @@ services:
       - COLLECTION_NAME=${COLLECTION_NAME:-shipment_data}
     depends_on:
       - kafka
-      - mongodb
     networks:
       - scmlite-net
     restart: unless-stopped
@@ -64,7 +63,7 @@ services:
       - DB_NAME=${DB_NAME:-scmlitedb}
       - JWT_SECRET=${JWT_SECRET}
     depends_on:
-      - mongodb
+      - kafka
     networks:
       - scmlite-net
     restart: unless-stopped
@@ -74,6 +73,8 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     container_name: scmlite-frontend
     ports:
       - "3000:80"
@@ -113,6 +114,33 @@ services:
     networks:
       - scmlite-net
     restart: unless-stopped
+
+  full-stack:
+    build:
+      context: .
+      dockerfile: Dockerfile.full
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    container_name: scmlite-all
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - DB_NAME=${DB_NAME:-scmlitedb}
+      - JWT_SECRET=${JWT_SECRET}
+      - KAFKA_TOPIC=${KAFKA_TOPIC:-shipment_data}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - COLLECTION_NAME=${COLLECTION_NAME:-shipment_data}
+      - BUFFER_SIZE=${BUFFER_SIZE:-4096}
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+      - "5050:5050"
+    depends_on:
+      - kafka
+    networks:
+      - scmlite-net
+    restart: unless-stopped
+    profiles:
+      - full
 
 networks:
   scmlite-net:
