@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../utils/api';
+import { ReCaptcha } from '../components/ReCaptcha';
 
 export function Signup() {
   const navigate = useNavigate();
@@ -12,6 +13,14 @@ export function Signup() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [recaptchaError, setRecaptchaError] = useState<string | null>(null);
+  const recaptchaRef = useRef<any>(null);
+
+  const handleRecaptchaChange = (token: string | null) => {
+    setRecaptchaToken(token);
+    setRecaptchaError(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,17 +31,26 @@ export function Signup() {
       return;
     }
 
+    if (!recaptchaToken) {
+      setRecaptchaError('Please verify you\'re not a robot');
+      return;
+    }
+
     setLoading(true);
     try {
       await authApi.signup({
         full_name: formData.full_name,
         email: formData.email,
         password: formData.password,
+        recaptchaToken,
       });
       setMessage({ type: 'success', text: 'Account created successfully! Redirecting to login...' });
       setTimeout(() => navigate('/login'), 2000);
     } catch (error) {
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Signup failed' });
+      // Reset reCAPTCHA on error
+      recaptchaRef.current?.reset();
+      setRecaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -104,6 +122,14 @@ export function Signup() {
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
               placeholder="Confirm your password"
+            />
+          </div>
+
+          <div className='flex justify-center w-full'>
+            <ReCaptcha 
+              onChange={handleRecaptchaChange} 
+              error={recaptchaError}
+              ref={recaptchaRef}
             />
           </div>
 

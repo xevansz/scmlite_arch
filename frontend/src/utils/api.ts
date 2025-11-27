@@ -39,16 +39,25 @@ export async function apiRequest<T>(
 
 // Auth API calls
 export const authApi = {
-  signup: (data: { full_name: string; email: string; password: string }) =>
+  signup: (data: { full_name: string; email: string; password: string; recaptchaToken: string }) =>
     apiRequest<{ message: string; user_id: string }>('/auth/signup', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        full_name: data.full_name,
+        email: data.email,
+        password: data.password,
+        recaptcha_token: data.recaptchaToken,
+      }),
     }),
 
-  login: (data: { email: string; password: string }) =>
+  login: (data: { email: string; password: string; recaptchaToken: string }) =>
     apiRequest<{ access_token: string; token_type: string; expires_in: number }>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+        recaptcha_token: data.recaptchaToken,
+      }),
     }),
 };
 

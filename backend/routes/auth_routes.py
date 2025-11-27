@@ -1,6 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import datetime, timezone
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from ..models.user_model import UserCreate, UserLogin
 from ..database import db
@@ -12,6 +16,21 @@ from ..utils.security import (
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 logger = logging.getLogger(__name__)
+
+RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY")
+RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
+
+async def verify_recaptcha(token: str) -> bool:
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            RECAPTCHA_VERIFY_URL,
+            data={
+                "secret": RECAPTCHA_SECRET_KEY,
+                "response": token
+            }
+        )
+        result = response.json()
+        return result.get("success", False)
 
 @router.post("/signup", response_model=dict)
 def signup(user: UserCreate):
@@ -32,6 +51,13 @@ def signup(user: UserCreate):
         user_data["created_at"] = datetime.now(timezone.utc)
         
         result = users_collection.insert_one(user_data)
+
+        if not verify_recaptcha(user.recaptcha_token):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid reCAPTCHA token"
+            )
+        
         return {
             "message": "User created successfully",
             "user_id": str(result.inserted_id)
@@ -50,6 +76,12 @@ def login(user: UserLogin):
     try:
         users_collection = db.get_collection("users")
         user_data = users_collection.find_one({"email": user.email})
+
+        if not verify_recaptcha(user.recaptcha_token):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid reCAPTCHA token"
+            )
         
         if not user_data or user_data.get("hashed_password") != user.password:
             raise HTTPException(
