@@ -1,103 +1,171 @@
-# SCMLite - Real-time Data Pipeline
+# SCMLite - Supply Chain Management System
 
-A real-time data streaming pipeline that processes IoT device data through Kafka and stores it in MongoDB.
+A comprehensive supply chain management system with real-time data processing capabilities.
 
 ## 📋 Project Overview
 - **Purpose**: University project for SMD (Software for Mobile and Distributed Systems)
 - **Components**:
-  - Socket Server: Generates IoT device data
-  - Kafka: Message broker for real-time data streaming
-  - MongoDB: Persistent storage for processed data
-  - Producer/Consumer: Python services for data processing
+  - **Frontend**: Modern web interface built with React
+  - **Backend**: FastAPI application serving RESTful APIs
+  - **Database**: MongoDB for persistent data storage
+  - **Real-time Processing**: Kafka-based data streaming pipeline
+  - **Authentication**: Secure user authentication system
 
-## 🚀 Quick Start
+## 🚀 Project Structure
 
-### Prerequisites
-- Docker and Docker Compose
-- Python 3.8+
-
-### 🐳 Docker Setup
-
-1. **Create Docker Network**
-   ```bash
-   docker network create scmlite-net
-   ```
-
-4. **Start Zookeeper**
-   ```bash
-   docker run -d \
-     --name zookeeper \
-     --network scmlite-net \
-     -p 2181:2181 \
-     -e ZOOKEEPER_CLIENT_PORT=2181 \
-     -e ZOOKEEPER_TICK_TIME=2000 \
-     wurstmeister/zookeeper
-   ```
-
-6. **Start Kafka**
-   ```bash
-   docker run -d \
-     --name kafka \
-     --network scmlite-net \
-     -p 9092:9092 \
-     -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
-     -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092 \
-     -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
-     -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
-     wurstmeister/kafka:2.13-2.8.1
-   ```
-
-## 🛠️ Project Structure
 ```
 scmlite_arch/
-├── consumer/           # Kafka consumer service
-│   └── consumer.py
-├── producer/           # Kafka producer service
-│   └── producer.py
-├── socker_server/      # Socket server (data source)
-│   └── server.py
-└── requirements.txt    # Python dependencies
+├── backend/                  # FastAPI backend application
+│   ├── models/              # Database models
+│   ├── routes/              # API route handlers
+│   │   ├── auth_routes.py   # Authentication endpoints
+│   │   ├── data_routes.py   # Data access endpoints
+│   │   └── shipment_routes.py # Shipment management
+│   ├── utils/               # Utility functions
+│   ├── database.py          # Database connection setup
+│   └── main.py              # FastAPI application entry point
+│
+├── frontend/                # React frontend application
+│   ├── public/              # Static files
+│   ├── src/                 # React source code
+│   │   ├── components/      # Reusable UI components
+│   │   ├── pages/           # Page components
+│   │   ├── App.tsx          # Main application component
+│   │   └── main.tsx         # Application entry point
+│   ├── package.json         # Frontend dependencies
+│   └── vite.config.ts       # Vite configuration
+│
+├── producer/                # Kafka producer service
+│   └── producer.py          # Produces data to Kafka topics
+│
+├── consumer/                # Kafka consumer service
+│   └── consumer.py          # Consumes and processes data
+│
+├── socket_server/           # Socket server
+│   └── server.py            # Handles real-time device connections
+│
+├── .env                    # Environment variables
+├── .gitignore              # Git ignore rules
+├── docker-compose.yml      # Docker Compose configuration
+├── requirements.txt        # Python dependencies
+└── README.md               # Project documentation
 ```
 
-## 🚦 Running the Application
+## �️ Prerequisites
 
-1. **Install Dependencies**
+- Docker and Docker Compose
+- Node.js (v14+)
+- Python 3.8+
+- MongoDB (can be run via Docker)
+- Kafka (can be run via Docker)
+
+## 🚀 Quick Start with Docker
+
+1. **Start the application stack**
    ```bash
-   pip install -r requirements.txt
+   docker-compose up -d
    ```
 
-2. **Start the Producer** (in a new terminal)
-   ```bash
-   python producer/producer.py
-   ```
+2. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Documentation: http://localhost:8000/docs
 
-3. **Start the Consumer** (in another terminal)
-   ```bash
-   python consumer/consumer.py
-   ```
+## 🔧 Environment Variables
 
-## 🌐 Accessing Data
+Create a `.env` file in the project root with the following variables:
 
-- **MongoDB**:
-  - Host: `localhost:27017`
-  - Database: `scmlitedb`
-  - Collections: 
-    - `users` - For user authentication
-    - `shipments_usr` - For shipment information
-    - `shipment_data` - For device telemetry data
-  - Credentials: `admin/password123`
+```env
+# MongoDB
+MONGO_URI=mongodb://admin:password123@localhost:27017/
+MONGO_DB=scmlitedb
 
-- **Kafka**:
-  - Bootstrap Server: `localhost:9092`
-  - Topic: `shipment_data`
+# FastAPI
+SECRET_KEY=your-secret-key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 
-## 📊 Data Format
-Example document in MongoDB:
-```json
+# Kafka
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+KAFKA_TOPIC=shipment_data
+```
+
+## 🌐 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - User login
+- `POST /api/auth/refresh` - Refresh access token
+
+### Shipments
+- `GET /api/shipments` - Get all shipments
+- `GET /api/shipments/{shipment_id}` - Get shipment details
+- `POST /api/shipments` - Create a new shipment
+- `PUT /api/shipments/{shipment_id}` - Update shipment
+- `DELETE /api/shipments/{shipment_id}` - Delete shipment
+
+### Device Data
+- `GET /api/data` - Get device telemetry data
+- `GET /api/data/{device_id}` - Get data for specific device
+- `POST /api/data` - Submit new device data
+
+## 📊 Data Models
+
+### User
+```typescript
 {
-  "Battery_Level": 4.79,
-  "Device_ID": 1158,
-  "First_Sensor_temperature": 28.7,
+  _id: ObjectId,
+  email: string,
+  hashed_password: string,
+  full_name: string,
+  is_active: boolean,
+  created_at: DateTime,
+  updated_at: DateTime
+}
+```
+
+### Shipment
+```typescript
+{
+  _id: ObjectId,
+  tracking_number: string,
+  status: string,
+  origin: string,
+  destination: string,
+  estimated_delivery: DateTime,
+  actual_delivery: DateTime,
+  created_at: DateTime,
+  updated_at: DateTime
+}
+```
+
+### Device Data
+```typescript
+{
+  _id: ObjectId,
+  device_id: string,
+  battery_level: number,
+  temperature: number,
+  humidity: number,
+  location: {
+    type: 'Point',
+    coordinates: [longitude, latitude]
+  },
+  timestamp: DateTime
+}
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
   "Route_From": "London,UK",
   "Route_To": "Bengaluru, India"
 }
