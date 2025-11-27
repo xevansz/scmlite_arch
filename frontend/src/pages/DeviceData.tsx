@@ -184,22 +184,22 @@ export function DeviceData() {
                     <p className="text-[#8b92a7] mb-1 text-sm">Device ID</p>
                     <p className="text-white text-lg font-semibold">{latestData.Device_ID}</p>
                   </div>
-                  <div className="bg-[#151d30] p-4 rounded">
+                    <div className="bg-[#151d30] p-4 rounded">
                     <p className="text-[#8b92a7] mb-1 text-sm">Battery Level</p>
                     <p className="text-white text-lg font-semibold">{latestData.Battery_Level}V</p>
-                  </div>
-                  <div className="bg-[#151d30] p-4 rounded">
+                    </div>
+                    <div className="bg-[#151d30] p-4 rounded">
                     <p className="text-[#8b92a7] mb-1 text-sm">Temperature</p>
                     <p className="text-white text-lg font-semibold">{latestData.First_Sensor_temperature}°C</p>
-                  </div>
-                  <div className="bg-[#151d30] p-4 rounded">
+                    </div>
+                    <div className="bg-[#151d30] p-4 rounded">
                     <p className="text-[#8b92a7] mb-1 text-sm">Route From</p>
                     <p className="text-white text-sm">{latestData.Route_From}</p>
-                  </div>
-                  <div className="bg-[#151d30] p-4 rounded">
+                    </div>
+                    <div className="bg-[#151d30] p-4 rounded">
                     <p className="text-[#8b92a7] mb-1 text-sm">Route To</p>
                     <p className="text-white text-sm">{latestData.Route_To}</p>
-                  </div>
+                    </div>
                 </div>
               </div>
             )}
@@ -221,10 +221,10 @@ export function DeviceData() {
                 </div>
               ) : (
                 <>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-[#151d30]">
-                        <tr>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-[#151d30]">
+                      <tr>
                           <th className="px-6 py-4 text-left text-[#8b92a7]">Device ID</th>
                           <th className="px-6 py-4 text-left text-[#8b92a7]">Battery Level</th>
                           <th className="px-6 py-4 text-left text-[#8b92a7]">Temperature</th>
@@ -232,10 +232,10 @@ export function DeviceData() {
                           <th className="px-6 py-4 text-left text-[#8b92a7]">Route To</th>
                           {deviceData[0]?.timestamp && (
                             <th className="px-6 py-4 text-left text-[#8b92a7]">Timestamp</th>
-                          )}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#1e2a45]">
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#1e2a45]">
                         {deviceData.map((data) => (
                           <tr key={data._id} className="hover:bg-[#151d30] transition-colors">
                             <td className="px-6 py-4 text-white">{data.Device_ID}</td>
@@ -245,14 +245,14 @@ export function DeviceData() {
                             <td className="px-6 py-4 text-[#8b92a7]">{data.Route_To}</td>
                             {data.timestamp && (
                               <td className="px-6 py-4 text-[#8b92a7]">
-                                {new Date(data.timestamp).toLocaleString()}
-                              </td>
-                            )}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                            {new Date(data.timestamp).toLocaleString()}
+                          </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
                   {/* Pagination */}
                   {totalPages > 1 && (

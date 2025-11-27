@@ -111,9 +111,9 @@ def get_device_data(
         # Fetch paginated data
         data = []
         for item in collection.find({"Device_ID": device_id_int})\
-                             .sort("timestamp", -1)\
-                             .skip(skip)\
-                             .limit(limit):
+                                 .sort("timestamp", -1)\
+                                 .skip(skip)\
+                                 .limit(limit):
             item["_id"] = str(item["_id"])
             data.append(item)
             

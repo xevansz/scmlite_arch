@@ -9,8 +9,8 @@ export function CreateShipment() {
     shipment_number: '',
     device_id: '',
     route: {
-      origin: '',
-      destination: '',
+    origin: '',
+    destination: '',
       waypoints: [] as string[],
     },
     po_number: '',
@@ -124,34 +124,34 @@ export function CreateShipment() {
             <h2 className="text-white text-lg font-semibold border-b border-[#1e2a45] pb-2">Basic Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div>
                 <label htmlFor="shipment_number" className="block text-white mb-2">
                   Shipment Number *
-                </label>
-                <input
+              </label>
+              <input
                   id="shipment_number"
-                  type="text"
-                  required
+                type="text"
+                required
                   minLength={5}
                   maxLength={20}
                   value={formData.shipment_number}
                   onChange={(e) => setFormData({ ...formData, shipment_number: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                  placeholder="e.g., SHIP-001"
-                />
-              </div>
+                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+                placeholder="e.g., SHIP-001"
+              />
+            </div>
 
-              <div>
-                <label htmlFor="device_id" className="block text-white mb-2">
+            <div>
+              <label htmlFor="device_id" className="block text-white mb-2">
                   Device ID *
-                </label>
-                <input
-                  id="device_id"
-                  type="text"
-                  required
-                  value={formData.device_id}
-                  onChange={(e) => setFormData({ ...formData, device_id: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+              </label>
+              <input
+                id="device_id"
+                type="text"
+                required
+                value={formData.device_id}
+                onChange={(e) => setFormData({ ...formData, device_id: e.target.value })}
+                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="e.g., 1150"
                 />
               </div>
@@ -170,7 +170,7 @@ export function CreateShipment() {
                   onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
                   className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="PO-12345"
-                />
+              />
               </div>
 
               <div>
@@ -195,32 +195,32 @@ export function CreateShipment() {
             <h2 className="text-white text-lg font-semibold border-b border-[#1e2a45] pb-2">Route Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="origin" className="block text-white mb-2">
+          <div>
+            <label htmlFor="origin" className="block text-white mb-2">
                   Origin *
-                </label>
-                <input
-                  id="origin"
-                  type="text"
-                  required
+            </label>
+            <input
+              id="origin"
+              type="text"
+              required
                   value={formData.route.origin}
                   onChange={(e) => setFormData({ ...formData, route: { ...formData.route, origin: e.target.value } })}
-                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="e.g., New York, USA"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
-                <label htmlFor="destination" className="block text-white mb-2">
+          <div>
+            <label htmlFor="destination" className="block text-white mb-2">
                   Destination *
-                </label>
-                <input
-                  id="destination"
-                  type="text"
-                  required
+            </label>
+            <input
+              id="destination"
+              type="text"
+              required
                   value={formData.route.destination}
                   onChange={(e) => setFormData({ ...formData, route: { ...formData.route, destination: e.target.value } })}
-                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="e.g., London, UK"
                 />
               </div>
@@ -394,24 +394,24 @@ export function CreateShipment() {
                 className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                 placeholder="Additional shipment details"
                 rows={3}
-              />
-            </div>
+            />
+          </div>
 
-            <div>
-              <label htmlFor="status" className="block text-white mb-2">
-                Status
-              </label>
-              <select
-                id="status"
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
-              >
-                <option value="pending">Pending</option>
-                <option value="in_transit">In Transit</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+          <div>
+            <label htmlFor="status" className="block text-white mb-2">
+              Status
+            </label>
+            <select
+              id="status"
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
+            >
+              <option value="pending">Pending</option>
+              <option value="in_transit">In Transit</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
             </div>
           </div>
 

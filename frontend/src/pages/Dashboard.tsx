@@ -8,8 +8,8 @@ interface Shipment {
   shipment_number: string;
   device_id: string;
   route: {
-    origin: string;
-    destination: string;
+  origin: string;
+  destination: string;
   };
   status: string;
   created_at: string;
@@ -107,12 +107,12 @@ export function Dashboard() {
             >
               View Device Data
             </Link>
-            <Link
-              to="/create-shipment"
-              className="px-6 py-2 bg-[#3b82f6] text-white rounded hover:bg-[#2563eb] transition-colors"
-            >
-              Create Shipment
-            </Link>
+          <Link
+            to="/create-shipment"
+            className="px-6 py-2 bg-[#3b82f6] text-white rounded hover:bg-[#2563eb] transition-colors"
+          >
+            Create Shipment
+          </Link>
           </div>
         </div>
 
@@ -263,45 +263,45 @@ export function Dashboard() {
               
               {shipments.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-[#8b92a7]">No shipments found. Create your first shipment to get started.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-[#151d30] border-b border-[#1e2a45]">
-                      <tr>
+            <p className="text-[#8b92a7]">No shipments found. Create your first shipment to get started.</p>
+          </div>
+        ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-[#151d30] border-b border-[#1e2a45]">
+                  <tr>
                         <th className="px-6 py-4 text-left text-[#8b92a7]">Shipment Number</th>
-                        <th className="px-6 py-4 text-left text-[#8b92a7]">Device ID</th>
+                    <th className="px-6 py-4 text-left text-[#8b92a7]">Device ID</th>
                         <th className="px-6 py-4 text-left text-[#8b92a7]">Route</th>
-                        <th className="px-6 py-4 text-left text-[#8b92a7]">Status</th>
-                        <th className="px-6 py-4 text-left text-[#8b92a7]">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#1e2a45]">
+                    <th className="px-6 py-4 text-left text-[#8b92a7]">Status</th>
+                    <th className="px-6 py-4 text-left text-[#8b92a7]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#1e2a45]">
                       {shipments.slice(0, 5).map((shipment) => (
                         <tr key={shipment._id} className="hover:bg-[#151d30] transition-colors">
                           <td className="px-6 py-4 text-white">{shipment.shipment_number}</td>
-                          <td className="px-6 py-4 text-white">{shipment.device_id}</td>
+                      <td className="px-6 py-4 text-white">{shipment.device_id}</td>
                           <td className="px-6 py-4 text-[#8b92a7]">
                             {shipment.route.origin} → {shipment.route.destination}
                           </td>
-                          <td className="px-6 py-4">
+                      <td className="px-6 py-4">
                             <span className={`px-3 py-1 rounded text-sm ${getStatusColor(shipment.status)}`}>
-                              {shipment.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <Link
-                              to={`/device-data/${shipment.device_id}`}
+                          {shipment.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <Link
+                          to={`/device-data/${shipment.device_id}`}
                               className="px-4 py-2 bg-[#3b82f6] text-white rounded hover:bg-[#2563eb] transition-colors inline-block text-sm"
-                            >
-                              View Data
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                        >
+                          View Data
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
                 </div>
               )}
             </div>

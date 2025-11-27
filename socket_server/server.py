@@ -3,10 +3,11 @@ import errno
 import json
 import time
 import random
+import os
 
 PORT = 5050
-SERVER = socket.gethostbyname(socket.gethostname())
-print(SERVER)
+SERVER = os.getenv('SOCKET_HOST', '0.0.0.0')
+print(f"Starting socket server on {SERVER}:{PORT}")
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
 

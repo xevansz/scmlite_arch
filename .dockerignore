@@ -1,40 +1,25 @@
-# General
-.git
-.gitignore
-.venv
 __pycache__
 *.pyc
 *.pyo
 *.pyd
 .Python
-env/
+*.so
+*.egg
+*.egg-info
+dist
+build
+.env
+.venv
 venv/
 ENV/
-env.bak/
-venv.bak/
-
-# Frontend
-frontend/node_modules
-frontend/.next
-frontend/out
-frontend/build
-
-# Logs
-logs
+node_modules/
+.git
+.gitignore
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Environment variables
-.env
-
-# IDE
+.DS_Store
+*.md
 .vscode
 .idea
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
+frontend/node_modules
+frontend/build
+frontend/dist
