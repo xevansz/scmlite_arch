@@ -1,0 +1,81 @@
+services:
+  socket_server:
+    build:
+      context: ./socket_server
+    container_name: socket_server
+    ports:
+      - "5050:5050"
+    networks:
+      - scmlite-net
+
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - scmlite-net
+
+  kafka:
+    image: wurstmeister/kafka:2.13-2.8.1
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - scmlite-net
+
+  producer:
+    build:
+      context: .
+      dockerfile: ./producer/Dockerfile
+    container_name: producer
+    environment:         
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: shipment_data
+      BUFFER_SIZE: 4096
+      SOCKET_SERVER: socket_server
+      SOCKET_PORT: 5050
+    depends_on:
+      - socket_server
+      - kafka
+    networks:
+      - scmlite-net
+
+  consumer:
+    build:
+      context: .
+      dockerfile: ./consumer/Dockerfile
+    container_name: consumer
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MONGO_URI: ${MONGO_URI}
+    depends_on:
+      - kafka
+    networks:
+      - scmlite-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    container_name: backend
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - consumer
+    networks:
+      - scmlite-net
+
+networks:
+  scmlite-net:
+    driver: bridge
