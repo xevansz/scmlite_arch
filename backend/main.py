@@ -64,7 +64,7 @@ async def root():
     }
 
 # build files
-app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
+app.mount("/", StaticFiles(directory="build", html=True), name="frontend")
 
 # Startup event
 @app.on_event("startup")
