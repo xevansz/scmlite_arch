@@ -2,14 +2,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy requirements and install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
 
-# Copy consumer files
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
 COPY consumer/ ./consumer/
 
-# Run consumer
-CMD ["python", "consumer/consumer.py"]
+WORKDIR /app/consumer
 
+# Uses KAFKA_BROKER and MONGO_URI from environment
+CMD ["python", "consumer.py"]

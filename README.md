@@ -66,8 +66,8 @@ scmlite_arch/
    docker-compose up -d
    ```
 
-2. **Access the application**
-   - Frontend: http://localhost:3000
+2. **Access the application** # use server names instead when using docker
+   - Frontend: http://localhost:3000 
    - Backend API: http://localhost:8000
    - API Documentation: http://localhost:8000/docs
 

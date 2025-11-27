@@ -3,8 +3,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copy socket server files
-COPY socket_server/ ./socket_server/
-
+COPY server.py .
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip
 
@@ -12,5 +11,5 @@ RUN pip install --no-cache-dir --upgrade pip
 EXPOSE 5050
 
 # Run socket server
-CMD ["python", "socket_server/server.py"]
+CMD ["python", "server.py"]
 

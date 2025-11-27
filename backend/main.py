@@ -1,10 +1,13 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 import uvicorn
 from dotenv import load_dotenv
 
-load_dotenv()
+from pathlib import Path
+env_path = Path(__file__).resolve().parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Import routers
 from .routes import auth_routes, shipment_routes, data_routes
@@ -34,7 +37,11 @@ app = FastAPI(
 # CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # In production, replace with specific origins
+    allow_origins=[
+        "http://frontend:3000",  # Docker container name
+        "http://localhost:3000",  # Local development
+        "http://127.0.0.1:3000"   # Local development alternative
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,6 +51,20 @@ app.add_middleware(
 app.include_router(auth_routes.router)
 app.include_router(shipment_routes.router)
 app.include_router(data_routes.router)
+
+# Root endpoint
+@app.get("/api")
+async def root():
+    """Root endpoint with API information."""
+    return {
+        "message": "Welcome to SCMLite API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "redoc": "/redoc"
+    }
+
+# build files
+app.mount("/", StaticFiles(directory="frontend_dist", html=True), name="frontend")
 
 # Startup event
 @app.on_event("startup")
@@ -69,17 +90,6 @@ def shutdown_db_client():
     """Close database connection on shutdown."""
     db.close_connection()
     logger.info("MongoDB connection closed.")
-
-# Root endpoint
-@app.get("/")
-def root():
-    """Root endpoint with API information."""
-    return {
-        "message": "Welcome to SCMLite API",
-        "version": "1.0.0",
-        "docs": "/docs",
-        "redoc": "/redoc"
-    }
 
 if __name__ == "__main__":
     uvicorn.run(

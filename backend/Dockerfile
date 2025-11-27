@@ -1,23 +1,46 @@
+FROM node:20-alpine As frontend-builder
+
+# Set working directory
+WORKDIR /frontend
+
+# copy node package files
+COPY frontend/package.json frontend/package-lock.json* ./
+
+run npm ci
+
+# copy files
+COPY frontend/ .
+
+# Build the frontend
+ARG VITE_API_URL=http://localhost:8000
+ENV VITE_API_URL=${VITE_API_URL}
+
+RUN npm run build
+
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# update system
 RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install dependencies
+# copy python files
 COPY requirements.txt .
+
+# install dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy backend files
+# Copy backend source to container
 COPY backend/ ./backend/
 
-# Expose port
+# build files
+COPY --from=frontend-builder /frontend/build ./frontend_dist
+
+# Expose FastAPI port
 EXPOSE 8000
 
-# Run backend
+# Run FastAPI
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
-

@@ -8,13 +8,16 @@ import os
 import logging
 from dotenv import load_dotenv
 
-load_dotenv()
+from pathlib import Path
+env_path = Path(__file__).resolve().parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Configuration
 SECRET_KEY = os.getenv("JWT_SECRET")
 if not SECRET_KEY:
     raise ValueError("JWT_SECRET environment variable not set")
 
+JWT_SECRET = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 300
 
