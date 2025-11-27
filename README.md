@@ -23,23 +23,6 @@ A real-time data streaming pipeline that processes IoT device data through Kafka
    docker network create scmlite-net
    ```
 
-2. **Create volume for MongoDB**
-   ```bash
-   docker volume create mongo-data
-   ```
-
-3. **Start MongoDB**
-   ```bash
-   docker run -d \
-     --name mongodb \
-     --network scmlite-net \
-     -p 27017:27017 \
-     -v mongo-data:/data/db \
-     -e MONGO_INITDB_ROOT_USERNAME=admin \
-     -e MONGO_INITDB_ROOT_PASSWORD=password123 \
-     mongo:latest
-   ```
-
 4. **Start Zookeeper**
    ```bash
    docker run -d \
@@ -49,11 +32,6 @@ A real-time data streaming pipeline that processes IoT device data through Kafka
      -e ZOOKEEPER_CLIENT_PORT=2181 \
      -e ZOOKEEPER_TICK_TIME=2000 \
      wurstmeister/zookeeper
-   ```
-
-5. **Wait for Zookeeper to be ready**
-   ```bash
-   Start-Sleep -Seconds 5
    ```
 
 6. **Start Kafka**
@@ -103,7 +81,10 @@ scmlite_arch/
 - **MongoDB**:
   - Host: `localhost:27017`
   - Database: `scmlitedb`
-  - Collection: `shipment_data`
+  - Collections: 
+    - `users` - For user authentication
+    - `shipments_usr` - For shipment information
+    - `shipment_data` - For device telemetry data
   - Credentials: `admin/password123`
 
 - **Kafka**:
@@ -131,3 +112,8 @@ Example document in MongoDB:
 
 ## 📝 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+This frontend includes components from [shadcn/ui](https://ui.shadcn.com/) used under [MIT license](https://github.com/shadcn-ui/ui/blob/main/LICENSE.md).
+
+This fronted includes photos from [Unsplash](https://unsplash.com) used under [license](https://unsplash.com/license).

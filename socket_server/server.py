@@ -3,13 +3,13 @@ import errno
 import json
 import time
 import random
+import os
 
 PORT = 5050
-SERVER = socket.gethostbyname(socket.gethostname())
-print(SERVER)
+SERVER = os.getenv('SOCKET_HOST', '0.0.0.0')
+print(f"Starting socket server on {SERVER}:{PORT}")
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
-DISCONNECT_MESSAGE = "!DISCONNECT"
 
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -41,10 +41,6 @@ while connected:
                     time.sleep(10)
                 else:
                     continue
-
-            # clientdata = conn.recv(1024).decode(FORMAT)
-            # print("ACKNOWLEDGEMENT RECEIVED FROM CLIENT : " +clientdata)
-                       
 
         except IOError as e:
             if e.errno == errno.EPIPE:

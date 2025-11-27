@@ -1,12 +1,17 @@
 import json
 import logging
 import signal
+import ssl
 import sys
 from kafka import KafkaConsumer
 from kafka.errors import KafkaError, NoBrokersAvailable
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, PyMongoError
 from time import sleep
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -20,11 +25,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configuration
-KAFKA_BOOTSTRAP_SERVERS = ['localhost:9092']
-KAFKA_TOPIC = 'shipment_data'
-MONGO_URI = 'mongodb://admin:password@localhost:27017/'
-DB_NAME = 'scmlitedb'
-COLLECTION_NAME = 'shipment_data'
+KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092').split(',')
+KAFKA_TOPIC = os.getenv('KAFKA_TOPIC', 'shipment_data')
+MONGO_URI = os.getenv('MONGO_URI')
+DB_NAME = os.getenv('DB_NAME', 'scmlitedb')
+COLLECTION_NAME = os.getenv('COLLECTION_NAME', 'shipment_data')
 
 class KafkaMongoConsumer:
     def __init__(self):
@@ -75,9 +80,8 @@ class KafkaMongoConsumer:
                     MONGO_URI,
                     serverSelectionTimeoutMS=5000,
                     connectTimeoutMS=30000,
-                    socketTimeoutMS=None,
-                    connect=False,
-                    maxPoolsize=1
+                    socketTimeoutMS=30000,
+                    maxPoolSize=10
                 )
                 # Force connection to verify it works
                 self.mongo_client.server_info()
@@ -112,7 +116,6 @@ class KafkaMongoConsumer:
             return
 
         try:
-            # Add processing timestamp
             data = message.value
             if not isinstance(data, dict):
                 logger.warning(f"Unexpected message format: {data}")
