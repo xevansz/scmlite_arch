@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import logging
 import os
 from dotenv import load_dotenv
+import httpx
 
 from pathlib import Path
 env_path = Path(__file__).resolve().parent.parent.parent / '.env'

@@ -1,5 +1,5 @@
 // API helper with automatic Bearer token attachment
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://backend:8000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;

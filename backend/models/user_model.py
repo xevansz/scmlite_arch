@@ -12,6 +12,7 @@ class UserCreate(UserBase):
         min_length=6,
         max_length=50
     )
+    recaptcha_token: str = Field(..., description="reCAPTCHA token")
     
 class UserInDB(UserBase):
     id: str
@@ -24,3 +25,4 @@ class UserInDB(UserBase):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    recaptcha_token: str = Field(..., description="reCAPTCHA token")

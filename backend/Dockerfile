@@ -37,7 +37,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY backend/ ./backend/
 
 # build files
-COPY --from=frontend-builder /frontend/build ./frontend_dist
+COPY --from=frontend-builder /frontend/build ./build
 
 # Expose FastAPI port
 EXPOSE 8000
