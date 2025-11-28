@@ -5,7 +5,6 @@ from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import os
-import logging
 from dotenv import load_dotenv
 
 from pathlib import Path
@@ -21,7 +20,6 @@ JWT_SECRET = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 300
 
-logger = logging.getLogger(__name__)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 def create_access_token(data: dict, expires_minutes: int = ACCESS_TOKEN_EXPIRE_MINUTES) -> str:
@@ -40,12 +38,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
     )
     
     if not token or token.lower() in ("null", "undefined", "none"):
-        logger.error("No token provided")
         raise credentials_exception
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except JWTError as e:
-        logger.error(f"JWT validation error: {e}")
+    except JWTError:
         raise credentials_exception

@@ -1,14 +1,11 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
-import logging
 import os
 from dotenv import load_dotenv
 
 from pathlib import Path
 env_path = Path(__file__).resolve().parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
-
-logger = logging.getLogger(__name__)
 
 class Database:
     _instance = None
@@ -21,6 +18,7 @@ class Database:
     
     def _initialize_connection(self):
         """Initialize MongoDB connection."""
+        print("Starting MongoDB connection...")
         try:
             self.client = MongoClient(
                 os.getenv('MONGO_URI'),
@@ -30,9 +28,9 @@ class Database:
             # Test the connection
             self.client.server_info()
             self.db = self.client[os.getenv('DB_NAME', 'scmlitedb')]
-            logger.info("Connected to MongoDB!")
+            print("MongoDB connected")
         except ConnectionFailure as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
+            print(f"Failed to connect to MongoDB: {e}")
             raise
     
     def get_collection(self, collection_name: str):
@@ -48,7 +46,7 @@ class Database:
         """Close the MongoDB connection."""
         if hasattr(self, 'client'):
             self.client.close()
-            logger.info("MongoDB connection closed")
+            print("MongoDB connection closed")
 
 # Initialize database connection
 db = Database()

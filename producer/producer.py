@@ -1,19 +1,11 @@
 import socket
 import json
 from kafka import KafkaProducer
-import logging
 import time
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 # Configuration
 SOCKET_SERVER = os.getenv('SOCKET_SERVER', '0.0.0.0')
@@ -24,6 +16,7 @@ BUFFER_SIZE = int(os.getenv('BUFFER_SIZE', 4096))
 
 def create_kafka_producer():
     """Create and return a Kafka producer instance."""
+    print("Starting Kafka producer connection...")
     try:
         producer = KafkaProducer(
             bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
@@ -31,36 +24,38 @@ def create_kafka_producer():
             acks='all',
             retries=3
         )
-        logger.info("Successfully connected to Kafka")
+        print("Kafka producer connected")
         return producer
     except Exception as e:
-        logger.error(f"Failed to create Kafka producer: {e}")
+        print(f"Failed to create Kafka producer: {e}")
         raise
 
 def connect_to_socket_server(host, port):
     """Connect to the socket server and return the socket object."""
+    print(f"Starting socket server connection to {host}:{port}...")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     while True:
         try:
             sock.connect((host, port))
-            logger.info(f"Connected to socket server at {host}:{port}")
+            print(f"Connected to socket server at {host}:{port}")
             return sock
         except ConnectionRefusedError:
-            logger.warning("Connection refused. Retrying in 5 seconds...")
+            print("Connection refused. Retrying in 5 seconds...")
             time.sleep(5)
         except Exception as e:
-            logger.error(f"Error connecting to socket server: {e}")
+            print(f"Error connecting to socket server: {e}")
             raise
 
 def process_messages(sock, producer):
     """Continuously receive and process messages from the socket server."""
+    print("Starting message processing...")
     buffer = ""
     while True:
         try:
             # Receive data
             data = sock.recv(BUFFER_SIZE)
             if not data:
-                logger.warning("Connection closed by server")
+                print("Connection closed by server")
                 return False
 
             # Decode and process the data
@@ -71,29 +66,18 @@ def process_messages(sock, producer):
                 json_str, _, buffer = buffer.partition('}')
                 json_str += '}'
                 
-                try:
-                    # Parse the JSON data
-                    message = json.loads(json_str)
-                    logger.info(f"Received message: {message}")
-                    
-                    # Send to Kafka
-                    producer.send(KAFKA_TOPIC, value=message)
-                    producer.flush()
-                    logger.info(f"Sent to Kafka topic '{KAFKA_TOPIC}': {message}")
-                    
-                except json.JSONDecodeError:
-                    logger.warning(f"Invalid JSON: {json_str}")
-                except Exception as e:
-                    logger.error(f"Error processing message: {e}")
-        
-        except socket.error as e:
-            logger.error(f"Socket error: {e}")
+                # Parse the JSON data
+                message = json.loads(json_str)
+                
+                # Send to Kafka
+                producer.send(KAFKA_TOPIC, value=message)
+                producer.flush()
+        except socket.error:
+            print("Socket connection error")
             return False
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}")
-            return True  # Return True to attempt reconnection
 
 def main():
+    print("Starting producer...")
     producer = create_kafka_producer()
     
     while True:
@@ -103,19 +87,17 @@ def main():
             if not should_reconnect:
                 break
         except KeyboardInterrupt:
-            logger.info("Shutting down...")
+            print("Shutting down...")
             break
-        except Exception as e:
-            logger.error(f"Unexpected error in main loop: {e}")
         finally:
             sock.close()
-            logger.info("Socket connection closed")
+            print("Socket connection closed")
             
         # Wait before reconnecting
         time.sleep(5)
     
     producer.close()
-    logger.info("Kafka producer closed")
+    print("Producer ended")
 
 if __name__ == "__main__":
     main()

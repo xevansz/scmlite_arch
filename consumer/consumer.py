@@ -1,5 +1,4 @@
 import json
-import logging
 import signal
 import ssl
 import sys
@@ -12,17 +11,6 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('consumer.log')
-    ]
-)
-logger = logging.getLogger(__name__)
 
 # Configuration
 KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'kafka:9092').split(',')
@@ -47,6 +35,7 @@ class KafkaMongoConsumer:
 
     def _setup_kafka_consumer(self, max_retries=5, retry_delay=5):
         """Initialize Kafka consumer with retry logic."""
+        print("Starting Kafka consumer connection...")
         retry_count = 0
         while retry_count < max_retries:
             try:
@@ -58,21 +47,22 @@ class KafkaMongoConsumer:
                     enable_auto_commit=True,
                     group_id='shipment_consumer_group'
                 )
-                logger.info("Successfully connected to Kafka")
+                print("Kafka consumer connected")
                 return
             except NoBrokersAvailable:
                 retry_count += 1
                 if retry_count == max_retries:
-                    logger.error("Failed to connect to Kafka after multiple attempts")
+                    print("Failed to connect to Kafka after multiple attempts")
                     raise
-                logger.warning(f"Kafka broker not available. Retrying in {retry_delay} seconds... (Attempt {retry_count}/{max_retries})")
+                print(f"Kafka broker not available. Retrying in {retry_delay} seconds... (Attempt {retry_count}/{max_retries})")
                 sleep(retry_delay)
             except Exception as e:
-                logger.error(f"Error setting up Kafka consumer: {e}")
+                print(f"Error setting up Kafka consumer: {e}")
                 raise
 
     def _setup_mongodb(self, max_retries=5, retry_delay=5):
         """Initialize MongoDB connection with retry logic."""
+        print("Starting MongoDB connection...")
         retry_count = 0
         while retry_count < max_retries:
             try:
@@ -87,17 +77,17 @@ class KafkaMongoConsumer:
                 self.mongo_client.server_info()
                 db = self.mongo_client[DB_NAME]
                 self.collection = db[COLLECTION_NAME]
-                logger.info(f"Successfully connected to MongoDB. Database: {DB_NAME}, Collection: {COLLECTION_NAME}")
+                print(f"MongoDB connected. Database: {DB_NAME}, Collection: {COLLECTION_NAME}")
                 return
             except ConnectionFailure as e:
                 retry_count += 1
                 if retry_count == max_retries:
-                    logger.error("Failed to connect to MongoDB after multiple attempts")
+                    print("Failed to connect to MongoDB after multiple attempts")
                     raise
-                logger.warning(f"MongoDB connection failed. Retrying in {retry_delay} seconds... (Attempt {retry_count}/{max_retries})")
+                print(f"MongoDB connection failed. Retrying in {retry_delay} seconds... (Attempt {retry_count}/{max_retries})")
                 sleep(retry_delay)
             except Exception as e:
-                logger.error(f"Error setting up MongoDB: {e}")
+                print(f"Error setting up MongoDB: {e}")
                 raise
 
     @staticmethod
@@ -105,34 +95,24 @@ class KafkaMongoConsumer:
         """Safely deserialize JSON string."""
         try:
             return json.loads(json_str)
-        except json.JSONDecodeError as e:
-            logger.warning(f"Invalid JSON received: {json_str}. Error: {e}")
+        except json.JSONDecodeError:
             return None
 
     def _process_message(self, message):
         """Process a single message and insert into MongoDB."""
         if not message.value:
-            logger.warning("Received empty or invalid message")
             return
 
-        try:
-            data = message.value
-            if not isinstance(data, dict):
-                logger.warning(f"Unexpected message format: {data}")
-                return
-                
-            # Insert into MongoDB
-            result = self.collection.insert_one(data)
-            logger.info(f"Inserted document with ID: {result.inserted_id}")
+        data = message.value
+        if not isinstance(data, dict):
+            return
             
-        except PyMongoError as e:
-            logger.error(f"MongoDB error: {e}")
-        except Exception as e:
-            logger.error(f"Error processing message: {e}")
+        # Insert into MongoDB
+        self.collection.insert_one(data)
 
     def _shutdown(self, signum, frame):
         """Handle shutdown signals."""
-        logger.info("Shutdown signal received. Closing connections...")
+        print("Shutdown signal received. Closing connections...")
         self.running = False
         self.close()
         sys.exit(0)
@@ -140,53 +120,42 @@ class KafkaMongoConsumer:
     def close(self):
         """Close all connections."""
         if self.consumer:
-            try:
-                self.consumer.close()
-                logger.info("Kafka consumer closed")
-            except Exception as e:
-                logger.error(f"Error closing Kafka consumer: {e}")
+            self.consumer.close()
+            print("Kafka consumer closed")
         
         if self.mongo_client:
-            try:
-                self.mongo_client.close()
-                logger.info("MongoDB connection closed")
-            except Exception as e:
-                logger.error(f"Error closing MongoDB connection: {e}")
+            self.mongo_client.close()
+            print("MongoDB connection closed")
 
     def run(self):
         """Main consumer loop."""
-        logger.info("Starting Kafka consumer...")
+        print("Starting consumer loop...")
         
-        try:
-            for message in self.consumer:
-                if not self.running:
-                    break
-                    
-                logger.debug(f"Received message: {message.value}")
-                self._process_message(message)
-                
-        except KafkaError as e:
-            logger.error(f"Kafka error: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}")
-        finally:
-            self.close()
+        for message in self.consumer:
+            if not self.running:
+                break
+            self._process_message(message)
+        
+        self.close()
+        print("Consumer loop ended")
 
 def main():
+    print("Starting consumer...")
     consumer = None
     while True:
         try:
             consumer = KafkaMongoConsumer()
             consumer.run()
         except KeyboardInterrupt:
-            logger.info("Shutdown requested. Exiting...")
+            print("Shutdown requested. Exiting...")
             if consumer:
                 consumer.close()
             break
         except Exception as e:
-            logger.error(f"Consumer failed: {e}")
-            logger.info("Restarting consumer in 10 seconds...")
+            print(f"Consumer failed: {e}")
+            print("Restarting consumer in 10 seconds...")
             sleep(10)
+    print("Consumer ended")
 
 if __name__ == "__main__":
     main()

@@ -192,10 +192,10 @@ export function CreateShipment() {
 
           {/* Route Information */}
           <div className="space-y-4">
-            <h2 className="text-white text-lg font-semibold border-b border-[#1e2a45] pb-2">Route Information</h2>
+            <h2 className="text-white text-lg font-semibold border-b border-[#1e2a45] pb-2">Route Details</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+          {/* <div>
             <label htmlFor="origin" className="block text-white mb-2">
                   Origin *
             </label>
@@ -208,7 +208,39 @@ export function CreateShipment() {
               className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="e.g., New York, USA"
             />
+          </div> */}
+
+          <div>
+          <label htmlFor="origin" className="block text-white mb-2">
+            Origin *
+          </label>
+            <select
+              id="origin"
+              required
+              value={formData.route.origin}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  route: { ...formData.route, origin: e.target.value }
+                })
+              }
+              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white 
+                        focus:outline-none focus:border-[#3b82f6]"
+            >
+              <option value="" disabled>
+                -- Select Origin --
+              </option>
+              <option value="New York, USA">New York, USA</option>
+              <option value="Los Angeles, USA">Los Angeles, USA</option>
+              <option value="London, UK">London, UK</option>
+              <option value="Berlin, Germany">Berlin, Germany</option>
+              <option value="Tokyo, Japan">Tokyo, Japan</option>
+              <option value="Mumbai, India">Mumbai, India</option>
+              <option value="Singapore">Singapore</option>
+              <option value="Sydney, Australia">Sydney, Australia</option>
+            </select>
           </div>
+
 
           <div>
             <label htmlFor="destination" className="block text-white mb-2">

@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-import logging
 import uvicorn
 from dotenv import load_dotenv
 
@@ -12,18 +11,6 @@ load_dotenv(dotenv_path=env_path)
 # Import routers
 from .routes import auth_routes, shipment_routes, data_routes
 from .database import db
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('app.log')
-    ]
-)
-
-logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -70,10 +57,11 @@ app.mount("/", StaticFiles(directory="build", html=True), name="frontend")
 @app.on_event("startup")
 def startup_db_client():
     """Initialize database connection on startup."""
+    print("Starting backend...")
     try:
         # Test the connection
         db.client.admin.command('ping')
-        logger.info("Connected to MongoDB!")
+        print("MongoDB connected")
         
         # Create indexes
         db.create_index("users", "email", unique=True)
@@ -81,7 +69,7 @@ def startup_db_client():
         db.create_index("shipments_usr", "timestamp")
         
     except Exception as e:
-        logger.error(f"Error connecting to MongoDB: {e}")
+        print(f"Error connecting to MongoDB: {e}")
         raise
 
 # Shutdown event
@@ -89,7 +77,7 @@ def startup_db_client():
 def shutdown_db_client():
     """Close database connection on shutdown."""
     db.close_connection()
-    logger.info("MongoDB connection closed.")
+    print("Backend shutdown")
 
 if __name__ == "__main__":
     uvicorn.run(
