@@ -1,4 +1,4 @@
-FROM node:20-alpine As frontend-builder
+FROM node:20-alpine AS frontend-builder
 
 # Set working directory
 WORKDIR /frontend
@@ -6,7 +6,7 @@ WORKDIR /frontend
 # copy node package files
 COPY frontend/package.json frontend/package-lock.json* ./
 
-run npm ci
+RUN npm ci
 
 # copy files
 COPY frontend/ .
