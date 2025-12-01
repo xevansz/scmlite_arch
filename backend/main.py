@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from dotenv import load_dotenv
 
@@ -21,19 +20,6 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS middleware configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://frontend:3000",  # Docker container name
-        "http://localhost:3000",  # Local development
-        "http://127.0.0.1:3000"   # Local development alternative
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Include routers
 app.include_router(auth_routes.router)
 app.include_router(shipment_routes.router)
@@ -51,7 +37,7 @@ async def root():
     }
 
 # build files
-app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
+app.mount("/", StaticFiles(directory="build", html=True), name="frontend")
 
 # Startup event
 @app.on_event("startup")
