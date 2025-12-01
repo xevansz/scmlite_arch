@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../utils/api';
 import { ReCaptcha } from '../components/ReCaptcha';
@@ -51,7 +51,7 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#19254a] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="mb-8">
           <h1 className="text-white mb-2">Login</h1>

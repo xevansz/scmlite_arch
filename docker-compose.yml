@@ -2,7 +2,7 @@ services:
   socket_server:
     build:
       context: ./socket_server
-    container_name: socket_server
+    container_name: server
     ports:
       - "5050:5050"
     networks:

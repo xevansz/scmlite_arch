@@ -74,6 +74,11 @@ export const shipmentApi = {
       requiresAuth: true,
       body: JSON.stringify(data),
     }),
+
+  getByDeviceId: (deviceId: string) =>
+    apiRequest<any[]>(`/shipments/device/${deviceId}`, {
+      requiresAuth: true,
+    }),
 };
 
 // Device data API calls

@@ -543,8 +543,8 @@
     border-top-color: #0000;
   }
 
-  .bg-\[\#0a0f1e\] {
-    background-color: #0a0f1e;
+  .bg-\[\#19254a\] {
+    background-color: #19254a;
   }
 
   .bg-\[\#0f1729\] {
@@ -791,7 +791,7 @@
 
 :root {
   --font-size: 16px;
-  --background: #fff;
+  --background: #19254a;
   --foreground: oklch(.145 0 0);
   --card: #fff;
   --card-foreground: oklch(.145 0 0);

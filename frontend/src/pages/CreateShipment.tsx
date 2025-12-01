@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '../components/Navigation';
 import { shipmentApi } from '../utils/api';
@@ -6,55 +6,97 @@ import { shipmentApi } from '../utils/api';
 export function CreateShipment() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    shipment_number: '',
     device_id: '',
-    route: {
-    origin: '',
-    destination: '',
-      waypoints: [] as string[],
-    },
+    device: '',
+    route_details: '',
     po_number: '',
     ndc_number: '',
-    serial_numbers: [''],
+    serial_number: '',
     container_number: '',
     goods_type: '',
     expected_delivery_date: '',
     delivery_number: '',
     batch_id: '',
     description: '',
-    status: 'pending',
+    status: 'in_transit',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [waypointInput, setWaypointInput] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Route options for dropdown
+  const routeOptions = [
+    'New York, USA -> London, UK',
+    'Los Angeles, USA -> Tokyo, Japan',
+    'London, UK -> Mumbai, India',
+    'Berlin, Germany -> Singapore',
+    'Tokyo, Japan -> Sydney, Australia',
+    'Mumbai, India -> New York, USA',
+    'Singapore -> Berlin, Germany',
+    'Sydney, Australia -> Los Angeles, USA',
+  ];
+
+  // Device options for dropdown
+  const deviceOptions = [
+    'GPS Tracker Pro',
+    'IoT Sensor Device',
+    'Temperature Monitor',
+    'Humidity Sensor',
+    'Multi-Sensor Device',
+    'RFID Tracker',
+  ];
+
+  // Goods type options for dropdown
+  const goodsTypeOptions = [
+    'Electronics',
+    'Pharmaceuticals',
+    'Food & Beverages',
+    'Textiles',
+    'Automotive Parts',
+    'Chemicals',
+    'Machinery',
+    'Raw Materials',
+    'Other',
+  ];
+
+  // Status options for dropdown
+  const statusOptions = [
+    { value: 'in_transit', label: 'In Transit' },
+    { value: 'delivered', label: 'Delivered' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'cancelled', label: 'Cancelled' },
+  ];
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      // Filter out empty serial numbers
-      const serialNumbers = formData.serial_numbers.filter(sn => sn.trim() !== '');
-      
+      // Parse route details to extract origin and destination
+      const routeParts = formData.route_details.split(' -> ');
+      const origin = routeParts[0] || '';
+      const destination = routeParts[1] || '';
+
+      // Generate shipment number (required by backend)
+      const shipmentNumber = `SHIP-${Date.now()}`;
+
       // Prepare data matching backend model
       const shipmentData = {
-        shipment_number: formData.shipment_number,
+        shipment_number: shipmentNumber,
         device_id: formData.device_id,
         route: {
-          origin: formData.route.origin,
-          destination: formData.route.destination,
-          waypoints: formData.route.waypoints.length > 0 ? formData.route.waypoints : undefined,
+          origin: origin,
+          destination: destination,
         },
         po_number: formData.po_number,
         ndc_number: formData.ndc_number,
-        serial_numbers: serialNumbers,
+        serial_numbers: [formData.serial_number], // Backend expects array
         container_number: formData.container_number,
         goods_type: formData.goods_type,
         expected_delivery_date: formData.expected_delivery_date,
         delivery_number: formData.delivery_number,
         batch_id: formData.batch_id,
-        description: formData.description || undefined,
+        description: formData.description,
         status: formData.status,
       };
 
@@ -67,49 +109,8 @@ export function CreateShipment() {
     }
   };
 
-  const addSerialNumber = () => {
-    setFormData({
-      ...formData,
-      serial_numbers: [...formData.serial_numbers, ''],
-    });
-  };
-
-  const updateSerialNumber = (index: number, value: string) => {
-    const newSerialNumbers = [...formData.serial_numbers];
-    newSerialNumbers[index] = value;
-    setFormData({ ...formData, serial_numbers: newSerialNumbers });
-  };
-
-  const removeSerialNumber = (index: number) => {
-    const newSerialNumbers = formData.serial_numbers.filter((_, i) => i !== index);
-    setFormData({ ...formData, serial_numbers: newSerialNumbers.length > 0 ? newSerialNumbers : [''] });
-  };
-
-  const addWaypoint = () => {
-    if (waypointInput.trim()) {
-      setFormData({
-        ...formData,
-        route: {
-          ...formData.route,
-          waypoints: [...formData.route.waypoints, waypointInput.trim()],
-        },
-      });
-      setWaypointInput('');
-    }
-  };
-
-  const removeWaypoint = (index: number) => {
-    setFormData({
-      ...formData,
-      route: {
-        ...formData.route,
-        waypoints: formData.route.waypoints.filter((_, i) => i !== index),
-      },
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-[#0a0f1e]">
+    <div className="min-h-screen bg-[#19254a]">
       <Navigation />
       
       <div className="max-w-4xl mx-auto px-8 py-8">
@@ -124,43 +125,70 @@ export function CreateShipment() {
             <h2 className="text-white text-lg font-semibold border-b border-[#1e2a45] pb-2">Basic Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label htmlFor="shipment_number" className="block text-white mb-2">
+              <div>
+                <label htmlFor="device_id" className="block text-white mb-2">
                   Shipment Number *
-              </label>
-              <input
-                  id="shipment_number"
-                type="text"
-                required
-                  minLength={5}
-                  maxLength={20}
-                  value={formData.shipment_number}
-                  onChange={(e) => setFormData({ ...formData, shipment_number: e.target.value })}
-                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                placeholder="e.g., SHIP-001"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="device_id" className="block text-white mb-2">
-                  Device ID *
-              </label>
-              <input
-                id="device_id"
-                type="text"
-                required
-                value={formData.device_id}
-                onChange={(e) => setFormData({ ...formData, device_id: e.target.value })}
-                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+                </label>
+                <input
+                  id="device_id"
+                  type="text"
+                  required
+                  value={formData.device_id}
+                  onChange={(e) => setFormData({ ...formData, device_id: e.target.value })}
+                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="e.g., 1150"
                 />
+              </div>
+
+              <div>
+                <label htmlFor="route_details" className="block text-white mb-2">
+                  Route Details *
+                </label>
+                <select
+                  id="route_details"
+                  required
+                  value={formData.route_details}
+                  onChange={(e) => setFormData({ ...formData, route_details: e.target.value })}
+                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
+                >
+                  <option value="" disabled>
+                    -- Select Route --
+                  </option>
+                  {routeOptions.map((route, index) => (
+                    <option key={index} value={route}>
+                      {route}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
+                <label htmlFor="device" className="block text-white mb-2">
+                  Device *
+                </label>
+                <select
+                  id="device"
+                  required
+                  value={formData.device}
+                  onChange={(e) => setFormData({ ...formData, device: e.target.value })}
+                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
+                >
+                  <option value="" disabled>
+                    -- Select Device --
+                  </option>
+                  {deviceOptions.map((device, index) => (
+                    <option key={index} value={device}>
+                      {device}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <label htmlFor="po_number" className="block text-white mb-2">
-                  Purchase Order Number *
+                  PO Number *
                 </label>
                 <input
                   id="po_number"
@@ -170,9 +198,11 @@ export function CreateShipment() {
                   onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
                   className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="PO-12345"
-              />
+                />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="ndc_number" className="block text-white mb-2">
                   NDC Number *
@@ -187,154 +217,21 @@ export function CreateShipment() {
                   placeholder="NDC-12345"
                 />
               </div>
-            </div>
-          </div>
 
-          {/* Route Information */}
-          <div className="space-y-4">
-            <h2 className="text-white text-lg font-semibold border-b border-[#1e2a45] pb-2">Route Details</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* <div>
-            <label htmlFor="origin" className="block text-white mb-2">
-                  Origin *
-            </label>
-            <input
-              id="origin"
-              type="text"
-              required
-                  value={formData.route.origin}
-                  onChange={(e) => setFormData({ ...formData, route: { ...formData.route, origin: e.target.value } })}
-              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                  placeholder="e.g., New York, USA"
-            />
-          </div> */}
-
-          <div>
-          <label htmlFor="origin" className="block text-white mb-2">
-            Origin *
-          </label>
-            <select
-              id="origin"
-              required
-              value={formData.route.origin}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  route: { ...formData.route, origin: e.target.value }
-                })
-              }
-              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white 
-                        focus:outline-none focus:border-[#3b82f6]"
-            >
-              <option value="" disabled>
-                -- Select Origin --
-              </option>
-              <option value="New York, USA">New York, USA</option>
-              <option value="Los Angeles, USA">Los Angeles, USA</option>
-              <option value="London, UK">London, UK</option>
-              <option value="Berlin, Germany">Berlin, Germany</option>
-              <option value="Tokyo, Japan">Tokyo, Japan</option>
-              <option value="Mumbai, India">Mumbai, India</option>
-              <option value="Singapore">Singapore</option>
-              <option value="Sydney, Australia">Sydney, Australia</option>
-            </select>
-          </div>
-
-
-          <div>
-            <label htmlFor="destination" className="block text-white mb-2">
-                  Destination *
-            </label>
-            <input
-              id="destination"
-              type="text"
-              required
-                  value={formData.route.destination}
-                  onChange={(e) => setFormData({ ...formData, route: { ...formData.route, destination: e.target.value } })}
-              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                  placeholder="e.g., London, UK"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-white mb-2">Waypoints (Optional)</label>
-              <div className="flex gap-2 mb-2">
+              <div>
+                <label htmlFor="serial_number" className="block text-white mb-2">
+                  Serial Number of Goods *
+                </label>
                 <input
+                  id="serial_number"
                   type="text"
-                  value={waypointInput}
-                  onChange={(e) => setWaypointInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addWaypoint())}
-                  className="flex-1 px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                  placeholder="Add waypoint"
+                  required
+                  value={formData.serial_number}
+                  onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+                  placeholder="SN-12345"
                 />
-                <button
-                  type="button"
-                  onClick={addWaypoint}
-                  className="px-4 py-3 bg-[#3b82f6] text-white rounded hover:bg-[#2563eb] transition-colors"
-                >
-                  Add
-                </button>
               </div>
-              {formData.route.waypoints.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.route.waypoints.map((waypoint, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-[#151d30] border border-[#1e2a45] rounded text-white flex items-center gap-2"
-                    >
-                      {waypoint}
-                      <button
-                        type="button"
-                        onClick={() => removeWaypoint(index)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Goods Information */}
-          <div className="space-y-4">
-            <h2 className="text-white text-lg font-semibold border-b border-[#1e2a45] pb-2">Goods Information</h2>
-            
-            <div>
-              <label htmlFor="serial_numbers" className="block text-white mb-2">
-                Serial Numbers *
-              </label>
-              {formData.serial_numbers.map((sn, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    required={index === 0}
-                    value={sn}
-                    onChange={(e) => updateSerialNumber(index, e.target.value)}
-                    className="flex-1 px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                    placeholder={`Serial number ${index + 1}`}
-                  />
-                  {formData.serial_numbers.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeSerialNumber(index)}
-                      className="px-4 py-3 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addSerialNumber}
-                className="px-4 py-2 bg-[#1e2a45] text-white rounded hover:bg-[#2a3654] transition-colors"
-              >
-                + Add Serial Number
-              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -357,19 +254,48 @@ export function CreateShipment() {
                 <label htmlFor="goods_type" className="block text-white mb-2">
                   Goods Type *
                 </label>
-                <input
+                <select
                   id="goods_type"
-                  type="text"
                   required
                   value={formData.goods_type}
                   onChange={(e) => setFormData({ ...formData, goods_type: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                  placeholder="e.g., Electronics"
-                />
+                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
+                >
+                  <option value="" disabled>
+                    -- Select Goods Type --
+                  </option>
+                  {goodsTypeOptions.map((type, index) => (
+                    <option key={index} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="expected_delivery_date" className="block text-white mb-2">
+                  Expected Delivery Date *
+                </label>
+                <div className="relative">
+                  <input
+                    id="expected_delivery_date"
+                    type="date"
+                    required
+                    value={formData.expected_delivery_date}
+                    onChange={(e) => setFormData({ ...formData, expected_delivery_date: e.target.value })}
+                    className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6] pr-10"
+                  />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                </div>
+              </div>
+
               <div>
                 <label htmlFor="delivery_number" className="block text-white mb-2">
                   Delivery Number *
@@ -384,66 +310,55 @@ export function CreateShipment() {
                   placeholder="DEL-12345"
                 />
               </div>
-
-              <div>
-                <label htmlFor="batch_id" className="block text-white mb-2">
-                  Batch ID *
-                </label>
-                <input
-                  id="batch_id"
-                  type="text"
-                  required
-                  value={formData.batch_id}
-                  onChange={(e) => setFormData({ ...formData, batch_id: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                  placeholder="BATCH-12345"
-                />
-              </div>
             </div>
 
             <div>
-              <label htmlFor="expected_delivery_date" className="block text-white mb-2">
-                Expected Delivery Date *
+              <label htmlFor="batch_id" className="block text-white mb-2">
+                Batch Id *
               </label>
               <input
-                id="expected_delivery_date"
-                type="date"
+                id="batch_id"
+                type="text"
                 required
-                value={formData.expected_delivery_date}
-                onChange={(e) => setFormData({ ...formData, expected_delivery_date: e.target.value })}
-                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
+                value={formData.batch_id}
+                onChange={(e) => setFormData({ ...formData, batch_id: e.target.value })}
+                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+                placeholder="BATCH-12345"
               />
             </div>
 
             <div>
               <label htmlFor="description" className="block text-white mb-2">
-                Description (Optional)
+                Shipment Description *
               </label>
               <textarea
                 id="description"
+                required
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                placeholder="Additional shipment details"
-                rows={3}
-            />
-          </div>
+                placeholder="Enter shipment description"
+                rows={4}
+              />
+            </div>
 
-          <div>
-            <label htmlFor="status" className="block text-white mb-2">
-              Status
-            </label>
-            <select
-              id="status"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
-            >
-              <option value="pending">Pending</option>
-              <option value="in_transit">In Transit</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+            <div>
+              <label htmlFor="status" className="block text-white mb-2">
+                Status *
+              </label>
+              <select
+                id="status"
+                required
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

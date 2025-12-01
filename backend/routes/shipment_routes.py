@@ -48,6 +48,32 @@ def get_all_shipments(
         
     return shipments
 
+@router.get("/device/{device_id}", response_model=List[Dict[str, Any]])
+def get_shipments_by_device_id(
+    device_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+) -> List[Dict[str, Any]]:
+    """Get all shipments for a specific device ID for the current user."""
+    # Get the collection
+    collection = db.get_collection("shipments_usr")
+    
+    # Query for user's shipments with matching device_id
+    query = {
+        "created_by": current_user["email"],
+        "device_id": device_id
+    }
+    
+    # Execute query
+    cursor = collection.find(query).sort("created_at", -1)
+    shipments = []
+    
+    # Convert ObjectId to string for JSON serialization
+    for shipment in cursor:
+        shipment["_id"] = str(shipment["_id"])
+        shipments.append(shipment)
+        
+    return shipments
+
 @router.get("/{shipment_id}", response_model=ShipmentInDB)
 def get_shipment(
     shipment_id: str,

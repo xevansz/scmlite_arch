@@ -114,7 +114,7 @@ export function DeviceData() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e]">
+    <div className="min-h-screen bg-[#19254a]">
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-8 py-8">

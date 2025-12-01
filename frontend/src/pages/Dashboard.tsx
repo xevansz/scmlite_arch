@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Navigation } from '../components/Navigation';
 import { shipmentApi, deviceApi } from '../utils/api';
@@ -16,6 +16,16 @@ interface Shipment {
   goods_type?: string;
 }
 
+interface DeviceDataPoint {
+  _id: string;
+  Device_ID: number;
+  Battery_Level: number;
+  First_Sensor_temperature: number;
+  Route_From: string;
+  Route_To: string;
+  timestamp?: string;
+}
+
 interface Statistics {
   totalShipments: number;
   totalDeviceData: number;
@@ -28,6 +38,7 @@ interface Statistics {
 
 export function Dashboard() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  const [latestData, setLatestData] = useState<DeviceDataPoint | null>(null);
   const [statistics, setStatistics] = useState<Statistics>({
     totalShipments: 0,
     totalDeviceData: 0,
@@ -42,6 +53,7 @@ export function Dashboard() {
 
   useEffect(() => {
     fetchData();
+    fetchLatestData();
   }, []);
 
   const fetchData = async () => {
@@ -73,6 +85,18 @@ export function Dashboard() {
     }
   };
 
+  const fetchLatestData = async () => {
+    try {
+      const latest = await deviceApi.getLatestData();
+      if (latest) {
+        setLatestData(latest);
+      }
+    } catch (err) {
+      // Silently fail for latest data
+      console.error('Failed to fetch latest data:', err);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     const statusLower = status.toLowerCase();
     if (statusLower.includes('delivered')) {
@@ -91,7 +115,7 @@ export function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e]">
+    <div className="min-h-screen bg-[#19254a]">
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-8 py-8">
@@ -177,6 +201,35 @@ export function Dashboard() {
                 <p className="text-white text-2xl font-bold">{statistics.inTransitShipments}</p>
               </div>
             </div>
+
+            {/* Latest Reading Card */}
+            {latestData && (
+              <div className="bg-[#0f1729] border border-[#1e2a45] rounded p-6">
+                <h2 className="text-white text-lg font-semibold mb-4">Latest Reading</h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="bg-[#151d30] p-4 rounded">
+                    <p className="text-[#8b92a7] mb-1 text-sm">Device ID</p>
+                    <p className="text-white text-lg font-semibold">{latestData.Device_ID}</p>
+                  </div>
+                  <div className="bg-[#151d30] p-4 rounded">
+                    <p className="text-[#8b92a7] mb-1 text-sm">Battery Level</p>
+                    <p className="text-white text-lg font-semibold">{latestData.Battery_Level}V</p>
+                  </div>
+                  <div className="bg-[#151d30] p-4 rounded">
+                    <p className="text-[#8b92a7] mb-1 text-sm">Temperature</p>
+                    <p className="text-white text-lg font-semibold">{latestData.First_Sensor_temperature}°C</p>
+                  </div>
+                  <div className="bg-[#151d30] p-4 rounded">
+                    <p className="text-[#8b92a7] mb-1 text-sm">Route From</p>
+                    <p className="text-white text-sm">{latestData.Route_From}</p>
+                  </div>
+                  <div className="bg-[#151d30] p-4 rounded">
+                    <p className="text-[#8b92a7] mb-1 text-sm">Route To</p>
+                    <p className="text-white text-sm">{latestData.Route_To}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Status Breakdown */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '../components/Navigation';
-import { deviceApi } from '../utils/api';
+import { deviceApi, shipmentApi } from '../utils/api';
 
 interface DeviceDataPoint {
   _id: string;
@@ -11,6 +11,23 @@ interface DeviceDataPoint {
   Route_From: string;
   Route_To: string;
   timestamp?: string;
+}
+
+interface Shipment {
+  _id: string;
+  shipment_number: string;
+  device_id: string;
+  route: {
+    origin: string;
+    destination: string;
+  };
+  po_number: string;
+  ndc_number: string;
+  container_number: string;
+  goods_type: string;
+  status: string;
+  created_at: string;
+  [key: string]: any;
 }
 
 interface PaginatedResponse {
@@ -24,7 +41,7 @@ interface PaginatedResponse {
 export function DeviceDataPage() {
   const navigate = useNavigate();
   const [deviceData, setDeviceData] = useState<DeviceDataPoint[]>([]);
-  const [latestData, setLatestData] = useState<DeviceDataPoint | null>(null);
+  const [shipments, setShipments] = useState<Shipment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -33,17 +50,19 @@ export function DeviceDataPage() {
   const [total, setTotal] = useState(0);
   const [filterDeviceId, setFilterDeviceId] = useState('');
   const [showAllDevices, setShowAllDevices] = useState(true);
+  const [loadingShipments, setLoadingShipments] = useState(false);
 
   useEffect(() => {
     fetchAllDeviceData();
-    fetchLatestData();
   }, []);
 
   useEffect(() => {
     if (showAllDevices) {
       fetchAllDeviceData();
+      setShipments([]);
     } else if (filterDeviceId) {
       fetchDeviceData(filterDeviceId);
+      fetchShipmentsByDeviceId(filterDeviceId);
     }
   }, [page, filterDeviceId, showAllDevices]);
 
@@ -63,6 +82,19 @@ export function DeviceDataPage() {
     }
   };
 
+  const fetchShipmentsByDeviceId = async (deviceId: string) => {
+    try {
+      setLoadingShipments(true);
+      const shipmentData = await shipmentApi.getByDeviceId(deviceId);
+      setShipments(shipmentData);
+    } catch (err) {
+      console.error('Failed to fetch shipments:', err);
+      setShipments([]);
+    } finally {
+      setLoadingShipments(false);
+    }
+  };
+
   const fetchAllDeviceData = async () => {
     try {
       setLoading(true);
@@ -79,23 +111,12 @@ export function DeviceDataPage() {
     }
   };
 
-  const fetchLatestData = async () => {
-    try {
-      const latest = await deviceApi.getLatestData();
-      if (latest) {
-        setLatestData(latest);
-      }
-    } catch (err) {
-      // Silently fail for latest data
-      console.error('Failed to fetch latest data:', err);
-    }
-  };
-
   const handleFilter = () => {
     if (filterDeviceId.trim()) {
       setShowAllDevices(false);
       setPage(1);
       fetchDeviceData(filterDeviceId.trim());
+      fetchShipmentsByDeviceId(filterDeviceId.trim());
     }
   };
 
@@ -103,11 +124,12 @@ export function DeviceDataPage() {
     setShowAllDevices(true);
     setFilterDeviceId('');
     setPage(1);
+    setShipments([]);
     fetchAllDeviceData();
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e]">
+    <div className="min-h-screen bg-[#19254a]">
       <Navigation />
       
       <div className="max-w-7xl mx-auto px-8 py-8">
@@ -156,37 +178,73 @@ export function DeviceDataPage() {
             <div className="mt-4 p-3 bg-[#151d30] rounded">
               <p className="text-[#8b92a7] text-sm">
                 Currently showing data for Device ID: <span className="text-white font-semibold">{filterDeviceId}</span>
+                {shipments.length > 0 && (
+                  <span className="ml-2 text-[#3b82f6]">
+                    • {shipments.length} shipment{shipments.length !== 1 ? 's' : ''} found
+                  </span>
+                )}
               </p>
             </div>
           )}
         </div>
 
-        {/* Latest Data Card */}
-        {latestData && (
-          <div className="bg-[#0f1729] border border-[#1e2a45] rounded p-6 mb-6">
-            <h2 className="text-white text-lg font-semibold mb-4">Latest Reading</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="bg-[#151d30] p-4 rounded">
-                <p className="text-[#8b92a7] mb-1 text-sm">Device ID</p>
-                <p className="text-white text-lg font-semibold">{latestData.Device_ID}</p>
-              </div>
-              <div className="bg-[#151d30] p-4 rounded">
-                <p className="text-[#8b92a7] mb-1 text-sm">Battery Level</p>
-                <p className="text-white text-lg font-semibold">{latestData.Battery_Level}V</p>
-              </div>
-              <div className="bg-[#151d30] p-4 rounded">
-                <p className="text-[#8b92a7] mb-1 text-sm">Temperature</p>
-                <p className="text-white text-lg font-semibold">{latestData.First_Sensor_temperature}°C</p>
-              </div>
-              <div className="bg-[#151d30] p-4 rounded">
-                <p className="text-[#8b92a7] mb-1 text-sm">Route From</p>
-                <p className="text-white text-sm">{latestData.Route_From}</p>
-              </div>
-              <div className="bg-[#151d30] p-4 rounded">
-                <p className="text-[#8b92a7] mb-1 text-sm">Route To</p>
-                <p className="text-white text-sm">{latestData.Route_To}</p>
-              </div>
+        {/* Shipments Section - Only shown when filtering by device ID */}
+        {!showAllDevices && filterDeviceId && (
+          <div className="bg-[#0f1729] border border-[#1e2a45] rounded overflow-hidden mb-6">
+            <div className="px-6 py-4 border-b border-[#1e2a45]">
+              <h2 className="text-white text-lg font-semibold">Shipments for Device {filterDeviceId}</h2>
             </div>
+            {loadingShipments ? (
+              <div className="text-center py-8">
+                <div className="inline-block w-6 h-6 border-4 border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-[#8b92a7] mt-2 text-sm">Loading shipments...</p>
+              </div>
+            ) : shipments.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-[#8b92a7]">No shipments found for this device ID.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[#151d30]">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-[#8b92a7]">Shipment Number</th>
+                      <th className="px-6 py-4 text-left text-[#8b92a7]">PO Number</th>
+                      <th className="px-6 py-4 text-left text-[#8b92a7]">Route</th>
+                      <th className="px-6 py-4 text-left text-[#8b92a7]">Goods Type</th>
+                      <th className="px-6 py-4 text-left text-[#8b92a7]">Status</th>
+                      <th className="px-6 py-4 text-left text-[#8b92a7]">Created At</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#1e2a45]">
+                    {shipments.map((shipment) => (
+                      <tr key={shipment._id} className="hover:bg-[#151d30] transition-colors">
+                        <td className="px-6 py-4 text-white">{shipment.shipment_number}</td>
+                        <td className="px-6 py-4 text-[#8b92a7]">{shipment.po_number}</td>
+                        <td className="px-6 py-4 text-[#8b92a7]">
+                          {shipment.route?.origin} → {shipment.route?.destination}
+                        </td>
+                        <td className="px-6 py-4 text-[#8b92a7]">{shipment.goods_type}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                            shipment.status === 'delivered' ? 'bg-green-500/20 text-green-400' :
+                            shipment.status === 'in_transit' ? 'bg-blue-500/20 text-blue-400' :
+                            shipment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                            shipment.status === 'cancelled' ? 'bg-red-500/20 text-red-400' :
+                            'bg-gray-500/20 text-gray-400'
+                          }`}>
+                            {shipment.status.replace('_', ' ').toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-[#8b92a7]">
+                          {new Date(shipment.created_at).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
