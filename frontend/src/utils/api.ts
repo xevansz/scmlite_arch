@@ -5,6 +5,19 @@ interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
 }
 
+try {
+  const response = await fetch(`${BASE_URL}`);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+} catch (error) {
+  if (error instanceof TypeError) {
+    // This will catch network errors
+    throw new Error('Unable to connect to the server. Please check your connection.');
+  }
+  throw error;
+}
+
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {}
