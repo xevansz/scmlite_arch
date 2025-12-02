@@ -3,11 +3,13 @@ services:
     image: firezzz/scmlite-socket-server:latest
     ports:
       - "5050:5050"
+    env_file:
+      - .env
     healthcheck:
       test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/5050"]
       interval: 10s
       timeout: 5s
-      retries: 3
+      retries: 3s
       start_period: 5s
     networks:
       - scmlite-net
@@ -43,6 +45,8 @@ services:
   producer:
     image: firezzz/scmlite-producer:latest
     container_name: producer
+    env_file:
+      - .env
     environment:         
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_TOPIC: shipment_data
@@ -60,6 +64,8 @@ services:
   consumer:
     image: firezzz/scmlite-consumer:latest
     container_name: consumer
+    env_file:
+      - .env
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       MONGO_URI: ${MONGO_URI}
@@ -74,6 +80,8 @@ services:
     container_name: backend
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       MONGO_URI: ${MONGO_URI}
       JWT_SECRET: ${JWT_SECRET}
