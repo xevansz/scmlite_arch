@@ -10,7 +10,6 @@ on:
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-  VERSION: 1.0
 
 jobs:
   build-and-push:
@@ -34,7 +33,9 @@ jobs:
       with:
         context: ./socket_server
         push: true
-        tags: ${{ env.DOCKERHUB_USERNAME }}/scmlite-socket-server:${{ env.VERSION }}
+        tags: |
+          ${{ env.DOCKERHUB_USERNAME }}/scmlite-socket-server:${{ github.run_number }}
+          ${{ env.DOCKERHUB_USERNAME }}/scmlite-socket-server:latest
 
     - name: Build and push producer
       uses: docker/build-push-action@v4
@@ -42,7 +43,9 @@ jobs:
         context: .
         file: ./producer/Dockerfile
         push: true
-        tags: ${{ env.DOCKERHUB_USERNAME }}/scmlite-producer:${{ env.VERSION }}
+        tags: |
+          ${{ env.DOCKERHUB_USERNAME }}/scmlite-producer:${{ github.run_number }}
+          ${{ env.DOCKERHUB_USERNAME }}/scmlite-producer:latest
 
     - name: Build and push consumer
       uses: docker/build-push-action@v4
@@ -50,7 +53,9 @@ jobs:
         context: .
         file: ./consumer/Dockerfile
         push: true
-        tags: ${{ env.DOCKERHUB_USERNAME }}/scmlite-consumer:${{ env.VERSION }}
+        tags: |
+          ${{ env.DOCKERHUB_USERNAME }}/scmlite-consumer:${{ github.run_number }}
+          ${{ env.DOCKERHUB_USERNAME }}/scmlite-consumer:latest
 
     - name: Build and push backend
       uses: docker/build-push-action@v4
@@ -59,5 +64,5 @@ jobs:
         file: ./backend/Dockerfile
         push: true
         tags: |
-          ${{ env.DOCKERHUB_USERNAME }}/scmlite-backend:${{ env.VERSION }}
+          ${{ env.DOCKERHUB_USERNAME }}/scmlite-backend:${{ github.run_number }}
           ${{ env.DOCKERHUB_USERNAME }}/scmlite-backend:latest
