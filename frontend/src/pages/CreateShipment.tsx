@@ -79,7 +79,7 @@ export function CreateShipment() {
 
       // Generate shipment number (required by backend)
       const shipmentNumber = `SHIP-${Date.now()}`;
-
+      
       // Prepare data matching backend model
       const shipmentData = {
         shipment_number: shipmentNumber,
@@ -125,17 +125,17 @@ export function CreateShipment() {
             <h2 className="text-white text-lg font-semibold border-b border-[#1e2a45] pb-2">Basic Information</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div>
                 <label htmlFor="device_id" className="block text-white mb-2">
                   Shipment Number *
-                </label>
-                <input
-                  id="device_id"
-                  type="text"
-                  required
-                  value={formData.device_id}
-                  onChange={(e) => setFormData({ ...formData, device_id: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+              </label>
+              <input
+                id="device_id"
+                type="text"
+                required
+                value={formData.device_id}
+                onChange={(e) => setFormData({ ...formData, device_id: e.target.value })}
+                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="e.g., 1150"
                 />
               </div>
@@ -198,9 +198,9 @@ export function CreateShipment() {
                   onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
                   className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="PO-12345"
-                />
+              />
               </div>
-            </div>
+              </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -218,17 +218,17 @@ export function CreateShipment() {
                 />
               </div>
 
-              <div>
+          <div>
                 <label htmlFor="serial_number" className="block text-white mb-2">
                   Serial Number of Goods *
-                </label>
-                <input
+            </label>
+            <input
                   id="serial_number"
-                  type="text"
-                  required
+              type="text"
+              required
                   value={formData.serial_number}
                   onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
-                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="SN-12345"
                 />
               </div>
@@ -310,20 +310,20 @@ export function CreateShipment() {
                   placeholder="DEL-12345"
                 />
               </div>
-            </div>
+              </div>
 
-            <div>
-              <label htmlFor="batch_id" className="block text-white mb-2">
+              <div>
+                <label htmlFor="batch_id" className="block text-white mb-2">
                 Batch Id *
-              </label>
-              <input
-                id="batch_id"
-                type="text"
-                required
-                value={formData.batch_id}
-                onChange={(e) => setFormData({ ...formData, batch_id: e.target.value })}
-                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
-                placeholder="BATCH-12345"
+                </label>
+                <input
+                  id="batch_id"
+                  type="text"
+                  required
+                  value={formData.batch_id}
+                  onChange={(e) => setFormData({ ...formData, batch_id: e.target.value })}
+                  className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+                  placeholder="BATCH-12345"
               />
             </div>
 
@@ -339,26 +339,26 @@ export function CreateShipment() {
                 className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                 placeholder="Enter shipment description"
                 rows={4}
-              />
-            </div>
+            />
+          </div>
 
-            <div>
-              <label htmlFor="status" className="block text-white mb-2">
+          <div>
+            <label htmlFor="status" className="block text-white mb-2">
                 Status *
-              </label>
-              <select
-                id="status"
+            </label>
+            <select
+              id="status"
                 required
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
-              >
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white focus:outline-none focus:border-[#3b82f6]"
+            >
                 {statusOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
-              </select>
+            </select>
             </div>
           </div>
 

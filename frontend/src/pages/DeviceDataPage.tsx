@@ -193,7 +193,7 @@ export function DeviceDataPage() {
           <div className="bg-[#0f1729] border border-[#1e2a45] rounded overflow-hidden mb-6">
             <div className="px-6 py-4 border-b border-[#1e2a45]">
               <h2 className="text-white text-lg font-semibold">Shipments for Device {filterDeviceId}</h2>
-            </div>
+              </div>
             {loadingShipments ? (
               <div className="text-center py-8">
                 <div className="inline-block w-6 h-6 border-4 border-[#3b82f6] border-t-transparent rounded-full animate-spin"></div>

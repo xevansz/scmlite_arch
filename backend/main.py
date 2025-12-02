@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+from fastapi.exception_handlers import http_exception_handler
+from starlette.exceptions import HTTPException as StarletteHTTPException
 import uvicorn
 from dotenv import load_dotenv
 
@@ -25,7 +28,7 @@ app.include_router(auth_routes.router)
 app.include_router(shipment_routes.router)
 app.include_router(data_routes.router)
 
-# Root endpoint
+# Root endpoint (API health/info)
 @app.get("/api")
 async def root():
     """Root endpoint with API information."""
@@ -33,11 +36,46 @@ async def root():
         "message": "Welcome to SCMLite API",
         "version": "1.0.0",
         "docs": "/docs",
-        "redoc": "/redoc"
+        "redoc": "/redoc",
     }
 
-# build files
+# Serve built frontend assets (Vite build output)
 app.mount("/", StaticFiles(directory="build", html=True), name="frontend")
+
+
+@app.exception_handler(StarletteHTTPException)
+async def spa_fallback(request: Request, exc: StarletteHTTPException):
+    """
+    SPA fallback:
+    - If a non-API GET route returns 404 and the client expects HTML,
+      serve the React index.html so that React Router can handle the route.
+    - This fixes reload / direct navigation on routes like /dashboard, /device-data, etc.
+    """
+    # Only handle 404s for GET requests that expect HTML
+    if (
+        exc.status_code == 404
+        and request.method == "GET"
+        and "text/html" in request.headers.get("accept", "")
+    ):
+        path = request.url.path or ""
+        # Let API/docs paths keep their normal 404 behaviour
+        if path.startswith((
+            "/auth",
+            "/shipments",
+            "/data",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/api",
+        )):
+            return await http_exception_handler(request, exc)
+
+        index_file = Path("build/index.html")
+        if index_file.exists():
+            return HTMLResponse(index_file.read_text(encoding="utf-8"), status_code=200)
+
+    # For everything else, use the default FastAPI HTTP exception handler
+    return await http_exception_handler(request, exc)
 
 # Startup event
 @app.on_event("startup")
