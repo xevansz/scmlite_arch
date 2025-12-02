@@ -64,7 +64,7 @@ jobs:
         file: ./backend/Dockerfile
         push: true
         build-args: |
-          VITE_API_URL=http://localhost:8000
+          VITE_API_URL= http://${{ secrets.SERVER_HOST }}:8000
         tags: |
           ${{ env.DOCKERHUB_USERNAME }}/scmlite-backend:${{ github.run_number }}
           ${{ env.DOCKERHUB_USERNAME }}/scmlite-backend:latest
