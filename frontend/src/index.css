@@ -791,7 +791,7 @@
 
 :root {
   --font-size: 16px;
-  --background: #fff;
+  --background: #0f1729;
   --foreground: oklch(.145 0 0);
   --card: #fff;
   --card-foreground: oklch(.145 0 0);

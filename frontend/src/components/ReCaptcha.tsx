@@ -1,4 +1,4 @@
-import { forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 
 interface ReCaptchaProps {
@@ -6,11 +6,13 @@ interface ReCaptchaProps {
   error?: string | null;
 }
 
+const VITE_RECAPTCHA_SITE_KEY="6LdipRksAAAAACiVBQI_mpkRF4uh8y9ymfj_wjaf";
+
 export const ReCaptcha = forwardRef<ReCAPTCHA, ReCaptchaProps>(({ onChange, error }, ref) => {
   return (
     <div className="mt-4">
       <ReCAPTCHA
-        sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY as string}
+        sitekey={VITE_RECAPTCHA_SITE_KEY}
         onChange={onChange}
         ref={ref}
         size="normal"
