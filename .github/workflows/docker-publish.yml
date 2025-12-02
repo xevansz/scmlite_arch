@@ -63,6 +63,8 @@ jobs:
         context: .
         file: ./backend/Dockerfile
         push: true
+        build-args: |
+          VITE_API_URL=http://backend:8000
         tags: |
           ${{ env.DOCKERHUB_USERNAME }}/scmlite-backend:${{ github.run_number }}
           ${{ env.DOCKERHUB_USERNAME }}/scmlite-backend:latest
