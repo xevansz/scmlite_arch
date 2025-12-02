@@ -26,6 +26,11 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9092"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
     networks:
       - scmlite-net
 
@@ -40,7 +45,8 @@ services:
       SOCKET_PORT: 5050
     depends_on:
       - socket_server
-      - kafka
+      - kafka:
+        condition: service_healthy
     networks:
       - scmlite-net
 
@@ -51,7 +57,8 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       MONGO_URI: ${MONGO_URI}
     depends_on:
-      - kafka
+      - kafka:
+        condition: service_healthy
     networks:
       - scmlite-net
 
@@ -59,7 +66,7 @@ services:
     image: firezzz/scmlite-backend:latest
     container_name: backend
     ports:
-      - "8000:8000"
+      - "80:8000"
     environment:
       MONGO_URI: ${MONGO_URI}
       JWT_SECRET: ${JWT_SECRET}
