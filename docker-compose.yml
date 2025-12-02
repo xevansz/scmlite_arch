@@ -1,8 +1,6 @@
 services:
   socket_server:
-    build:
-      context: ./socket_server
-    container_name: server
+    image: firezzz/scmlite-socket-server:latest
     ports:
       - "5050:5050"
     networks:
@@ -32,9 +30,7 @@ services:
       - scmlite-net
 
   producer:
-    build:
-      context: .
-      dockerfile: ./producer/Dockerfile
+    image: firezzz/scmlite-producer:latest
     container_name: producer
     environment:         
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -49,9 +45,7 @@ services:
       - scmlite-net
 
   consumer:
-    build:
-      context: .
-      dockerfile: ./consumer/Dockerfile
+    image: firezzz/scmlite-consumer:latest
     container_name: consumer
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -62,9 +56,7 @@ services:
       - scmlite-net
 
   backend:
-    build:
-      context: .
-      dockerfile: ./backend/Dockerfile
+    image: firezzz/scmlite-backend:latest
     container_name: backend
     ports:
       - "8000:8000"
