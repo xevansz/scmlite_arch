@@ -19,7 +19,8 @@ JWT_SECRET = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 300
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+# OAuth2 with Password (and hashed password) flow
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def create_access_token(data: dict, expires_minutes: int = ACCESS_TOKEN_EXPIRE_MINUTES) -> str:
     """Create a JWT access token."""

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import datetime, timezone
+from fastapi.security import OAuth2PasswordRequestForm
 import os
 from dotenv import load_dotenv
 import httpx
@@ -12,8 +13,7 @@ from ..models.user_model import UserCreate, UserLogin
 from ..database import db
 from ..utils.security import (
     create_access_token,
-    get_current_user,
-    ACCESS_TOKEN_EXPIRE_MINUTES
+    get_current_user
 )
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -64,32 +64,32 @@ def signup(user: UserCreate):
     }
 
 @router.post("/login", response_model=dict)
-def login(user: UserLogin):
-    """User login and get access token."""
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """OAuth2 compatible token login, get an access token for future requests."""
     users_collection = db.get_collection("users")
-    user_data = users_collection.find_one({"email": user.email})
-
-    if not verify_recaptcha(user.recaptcha_token):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid reCAPTCHA token"
-        )
+    user_data = users_collection.find_one({"email": form_data.username})
     
-    if not user_data or user_data.get("hashed_password") != user.password:
+    # if not verify_recaptcha(form_data.recaptcha_token):
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail="Invalid reCAPTCHA token"
+    #     )
+    
+    if not user_data or not user_data.get("hashed_password") == form_data.password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     
     # Create token
     access_token = create_access_token(
-        data={"sub": str(user_data["_id"]), "email": user.email}
+        data={"sub": str(user_data["_id"])}
     )
     
     return {
         "access_token": access_token,
-        "token_type": "bearer",
-        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        "token_type": "bearer"
     }
 
 @router.get("/me", response_model=dict)
