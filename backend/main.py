@@ -58,7 +58,6 @@ async def spa_fallback(request: Request, exc: StarletteHTTPException):
         and "text/html" in request.headers.get("accept", "")
     ):
         path = request.url.path or ""
-        # Let API/docs paths keep their normal 404 behaviour
         if path.startswith((
             "/auth",
             "/shipments",
@@ -74,7 +73,6 @@ async def spa_fallback(request: Request, exc: StarletteHTTPException):
         if index_file.exists():
             return HTMLResponse(index_file.read_text(encoding="utf-8"), status_code=200)
 
-    # For everything else, use the default FastAPI HTTP exception handler
     return await http_exception_handler(request, exc)
 
 # Startup event
@@ -83,7 +81,6 @@ def startup_db_client():
     """Initialize database connection on startup."""
     print("Starting backend...")
     try:
-        # Test the connection
         db.client.admin.command('ping')
         print("MongoDB connected")
         

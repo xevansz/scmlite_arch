@@ -25,7 +25,6 @@ class Database:
                 serverSelectionTimeoutMS=5000
             )
             
-            # Test the connection
             self.client.server_info()
             self.db = self.client[os.getenv('DB_NAME', 'scmlitedb')]
             print("MongoDB connected")

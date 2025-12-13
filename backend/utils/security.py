@@ -17,7 +17,7 @@ if not SECRET_KEY:
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 300
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 # OAuth2 with Password (and hashed password) flow
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")

@@ -34,7 +34,7 @@ async def verify_recaptcha(token: str) -> bool:
         return result.get("success", False)
 
 @router.post("/signup", response_model=dict)
-def signup(user: UserCreate):
+async def signup(user: UserCreate):
     """Register a new user."""
     users_collection = db.get_collection("users")
     
@@ -69,11 +69,11 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     users_collection = db.get_collection("users")
     user_data = users_collection.find_one({"email": form_data.username})
     
-    # if not verify_recaptcha(form_data.recaptcha_token):
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail="Invalid reCAPTCHA token"
-    #     )
+    if not verify_recaptcha(form_data.recaptcha_token):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid reCAPTCHA token"
+        )
     
     if not user_data or not user_data.get("hashed_password") == form_data.password:
         raise HTTPException(
