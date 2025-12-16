@@ -56,11 +56,13 @@ def get_shipments_by_device_id(
     """Get all shipments for a specific device ID for the current user."""
     # Get the collection
     collection = db.get_collection("shipments_usr")
+
+    device_id_int = int(device_id)
     
     # Query for user's shipments with matching device_id
     query = {
         "created_by": current_user["email"],
-        "device_id": device_id
+        "device_id": device_id_int
     }
     
     # Execute query

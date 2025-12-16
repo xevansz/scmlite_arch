@@ -131,16 +131,21 @@ export function CreateShipment() {
               </label>
               <input
                 id="device_id"
-                type="text"
+                type="number"
+                inputMode='numeric'
+                pattern='[0-9]*'
                 required
                 value={formData.device_id}
-                onChange={(e) => setFormData({ ...formData, device_id: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setFormData({ ...formData, device_id: value });
+                }}
                 className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="e.g., 1150"
                 />
-              </div>
+            </div>
 
-              <div>
+            <div>
                 <label htmlFor="route_details" className="block text-white mb-2">
                   Route Details *
                 </label>
@@ -160,11 +165,11 @@ export function CreateShipment() {
                     </option>
                   ))}
                 </select>
-              </div>
+            </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div>
                 <label htmlFor="device" className="block text-white mb-2">
                   Device *
                 </label>
@@ -184,9 +189,9 @@ export function CreateShipment() {
                     </option>
                   ))}
                 </select>
-              </div>
+            </div>
 
-              <div>
+            <div>
                 <label htmlFor="po_number" className="block text-white mb-2">
                   PO Number *
                 </label>
@@ -194,16 +199,18 @@ export function CreateShipment() {
                   id="po_number"
                   type="text"
                   required
+                  pattern='[A-Za-z0-9-]+'
+                  title='only letters, numbers and hyphens are allowed'
                   value={formData.po_number}
                   onChange={(e) => setFormData({ ...formData, po_number: e.target.value })}
                   className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="PO-12345"
               />
-              </div>
-              </div>
+            </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div>
                 <label htmlFor="ndc_number" className="block text-white mb-2">
                   NDC Number *
                 </label>
@@ -211,31 +218,35 @@ export function CreateShipment() {
                   id="ndc_number"
                   type="text"
                   required
+                  pattern='[A-Za-z0-9-]+'
+                  title='only letters, numbers and hyphens are allowed'
                   value={formData.ndc_number}
                   onChange={(e) => setFormData({ ...formData, ndc_number: e.target.value })}
                   className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="NDC-12345"
                 />
-              </div>
+            </div>
 
-          <div>
+            <div>
                 <label htmlFor="serial_number" className="block text-white mb-2">
                   Serial Number of Goods *
             </label>
             <input
-                  id="serial_number"
+              id="serial_number"
               type="text"
               required
-                  value={formData.serial_number}
-                  onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+              pattern='[A-Za-z0-9-]+'
+              title='only letters, numbers and hyphens are allowed'
+              value={formData.serial_number}
+              onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
               className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="SN-12345"
                 />
-              </div>
+            </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div>
                 <label htmlFor="container_number" className="block text-white mb-2">
                   Container Number *
                 </label>
@@ -243,14 +254,16 @@ export function CreateShipment() {
                   id="container_number"
                   type="text"
                   required
+                  pattern='[A-Za-z0-9-]+'
+                  title='only letters, numbers and hyphens are allowed'
                   value={formData.container_number}
                   onChange={(e) => setFormData({ ...formData, container_number: e.target.value })}
                   className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
                   placeholder="CONT-12345"
                 />
-              </div>
+            </div>
 
-              <div>
+            <div>
                 <label htmlFor="goods_type" className="block text-white mb-2">
                   Goods Type *
                 </label>
@@ -270,11 +283,11 @@ export function CreateShipment() {
                     </option>
                   ))}
                 </select>
-              </div>
+            </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div>
                 <label htmlFor="expected_delivery_date" className="block text-white mb-2">
                   Expected Delivery Date *
                 </label>
@@ -294,7 +307,7 @@ export function CreateShipment() {
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                 </div>
-              </div>
+                </div>
 
               <div>
                 <label htmlFor="delivery_number" className="block text-white mb-2">
@@ -304,6 +317,8 @@ export function CreateShipment() {
                   id="delivery_number"
                   type="text"
                   required
+                  pattern='[A-Za-z0-9-]+'
+                  title='only letters, numbers and hyphens are allowed'
                   value={formData.delivery_number}
                   onChange={(e) => setFormData({ ...formData, delivery_number: e.target.value })}
                   className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
@@ -320,6 +335,8 @@ export function CreateShipment() {
                   id="batch_id"
                   type="text"
                   required
+                  pattern='[A-Za-z0-9-]+'
+                  title='only letters, numbers and hyphens are allowed'
                   value={formData.batch_id}
                   onChange={(e) => setFormData({ ...formData, batch_id: e.target.value })}
                   className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
