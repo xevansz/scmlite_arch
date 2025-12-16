@@ -98,19 +98,22 @@ export function DeviceData() {
     }
   };
 
-  const handleFilter = () => {
-    if (filterDeviceId.trim()) {
-      setShowAllDevices(false);
-      setPage(1);
-      navigate(`/device-data/${filterDeviceId}`);
-    }
-  };
+const handleFilter = () => {
+  if (filterDeviceId.trim()) {
+    setShowAllDevices(false);
+    setPage(1);
+    // Update the URL with the new device ID
+    navigate(`?device_id=${filterDeviceId.trim()}`, { replace: true });
+    fetchDeviceData(filterDeviceId.trim());
+  }
+};
 
   const handleShowAll = () => {
     setShowAllDevices(true);
     setFilterDeviceId('');
     setPage(1);
-    navigate('/device-data');
+    navigate('?', { replace: true });
+    fetchAllDeviceData();
   };
 
   return (

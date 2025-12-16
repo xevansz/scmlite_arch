@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '../components/Navigation';
 import { deviceApi, shipmentApi } from '../utils/api';
+import { useSearchParams } from 'react-router-dom';
 
 interface DeviceDataPoint {
   _id: string;
@@ -48,25 +49,13 @@ export function DeviceDataPage() {
   const [limit] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [filterDeviceId, setFilterDeviceId] = useState('');
-  const [showAllDevices, setShowAllDevices] = useState(true);
+  const [searchParams] = useSearchParams();
+  const deviceIdFromUrl = searchParams.get('device_id');
+  const [filterDeviceId, setFilterDeviceId] = useState(deviceIdFromUrl || '');
+  const [showAllDevices, setShowAllDevices] = useState(!deviceIdFromUrl);
   const [loadingShipments, setLoadingShipments] = useState(false);
 
-  useEffect(() => {
-    fetchAllDeviceData();
-  }, []);
-
-  useEffect(() => {
-    if (showAllDevices) {
-      fetchAllDeviceData();
-      setShipments([]);
-    } else if (filterDeviceId) {
-      fetchDeviceData(filterDeviceId);
-      fetchShipmentsByDeviceId(filterDeviceId);
-    }
-  }, [page, filterDeviceId, showAllDevices]);
-
-  const fetchDeviceData = async (deviceId: string) => {
+    const fetchDeviceData = useCallback(async (deviceId: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -80,9 +69,9 @@ export function DeviceDataPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchShipmentsByDeviceId = async (deviceId: string) => {
+  const fetchShipmentsByDeviceId = useCallback(async (deviceId: string) => {
     try {
       setLoadingShipments(true);
       const shipmentData = await shipmentApi.getByDeviceId(deviceId);
@@ -93,9 +82,9 @@ export function DeviceDataPage() {
     } finally {
       setLoadingShipments(false);
     }
-  };
+  }, []);
 
-  const fetchAllDeviceData = async () => {
+  const fetchAllDeviceData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -109,7 +98,7 @@ export function DeviceDataPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleFilter = () => {
     if (filterDeviceId.trim()) {
@@ -127,6 +116,27 @@ export function DeviceDataPage() {
     setShipments([]);
     fetchAllDeviceData();
   };
+
+  useEffect(() => {
+    if (deviceIdFromUrl) {
+      setFilterDeviceId(deviceIdFromUrl);
+      setShowAllDevices(false);
+      fetchDeviceData(deviceIdFromUrl);
+      fetchShipmentsByDeviceId(deviceIdFromUrl);
+    } else {
+      fetchAllDeviceData();
+    }
+  }, [deviceIdFromUrl, fetchDeviceData, fetchShipmentsByDeviceId]);
+
+  useEffect(() => {
+    if (showAllDevices) {
+      fetchAllDeviceData();
+      setShipments([]);
+    } else if (filterDeviceId) {
+      fetchDeviceData(filterDeviceId);
+      fetchShipmentsByDeviceId(filterDeviceId);
+    }
+  }, [page, filterDeviceId, showAllDevices]);
 
   return (
     <div className="min-h-screen bg-[#19254a]">
