@@ -19,8 +19,5 @@ python-jose[cryptography]
 # Kafka
 kafka-python
 
-# Development
-pytest
-httpx
-pytest-asyncio
-pytest-cov
+# regex
+re
