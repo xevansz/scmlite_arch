@@ -1,21 +1,54 @@
 // API helper with automatic Bearer token attachment
+// @ts-ignore - Vite environment variables
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
 }
 
-try {
-  const response = await fetch(`${BASE_URL}`);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+export class ApiError extends Error {
+  status?: number;
+  details?: any;
+
+  constructor(message: string, status?: number, details?: any) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+    Object.setPrototypeOf(this, ApiError.prototype);
   }
-} catch (error) {
-  if (error instanceof TypeError) {
-    // This will catch network errors
-    throw new Error('Unable to connect to the server. Please check your connection.');
+}
+
+function extractErrorMessage(errorData: any, status: number): string {
+  // Handle FastAPI validation errors (422)
+  if (status === 422 && Array.isArray(errorData.detail)) {
+    return errorData.detail
+      .map((err: any) => {
+        const field = err.loc?.join('.') || 'field';
+        return `${field}: ${err.msg || err.message || 'Invalid value'}`;
+      })
+      .join('; ');
   }
-  throw error;
+
+  // Handle string detail
+  if (typeof errorData.detail === 'string') {
+    return errorData.detail;
+  }
+
+  // Handle object detail
+  if (typeof errorData.detail === 'object' && errorData.detail !== null) {
+    return Object.entries(errorData.detail)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('; ');
+  }
+
+  // Handle array of error messages
+  if (Array.isArray(errorData.detail)) {
+    return errorData.detail.map((err: any) => err.msg || String(err)).join('; ');
+  }
+
+  // Fallback to status text or generic message
+  return errorData.message || `Request failed with status ${status}`;
 }
 
 export async function apiRequest<T>(
@@ -40,14 +73,37 @@ export async function apiRequest<T>(
     }
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, config);
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, config);
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType?.includes('application/json');
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-    throw new Error(error.detail || error.message || `HTTP ${response.status}`);
+    if (!response.ok) {
+      let errorData: any;
+      
+      try {
+        errorData = isJson ? await response.json() : { message: await response.text() };
+      } catch (e) {
+        errorData = { message: `HTTP ${response.status} ${response.statusText}` };
+      }
+
+      const errorMessage = extractErrorMessage(errorData, response.status);
+      throw new ApiError(errorMessage, response.status, errorData.detail || errorData);
+    }
+
+    const result = isJson ? await response.json() : await response.text();
+    return result as T;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    
+    if (error instanceof TypeError) {
+      throw new ApiError('Unable to connect to the server. Please check your connection.', 0);
+    }
+    
+    throw new ApiError(error instanceof Error ? error.message : 'An unknown error occurred', 0);
   }
-
-  return response.json();
 }
 
 // Auth API calls

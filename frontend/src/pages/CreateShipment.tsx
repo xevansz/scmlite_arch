@@ -21,7 +21,7 @@ export function CreateShipment() {
     status: 'in_transit',
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{message: string; details?: any} | null>(null);
 
   // Route options for dropdown
   const routeOptions = [
@@ -73,9 +73,16 @@ export function CreateShipment() {
 
     try {
       // Parse route details to extract origin and destination
+      if (!formData.route_details) {
+        throw new Error('Please select a route');
+      }
+      
       const routeParts = formData.route_details.split(' -> ');
-      const origin = routeParts[0] || '';
-      const destination = routeParts[1] || '';
+      if (routeParts.length !== 2) {
+        throw new Error('Invalid route format. Expected format: "Origin -> Destination"');
+      }
+      
+      const [origin, destination] = routeParts;
 
       // Generate shipment number (required by backend)
       const shipmentNumber = `SHIP-${Date.now()}`;
@@ -83,14 +90,14 @@ export function CreateShipment() {
       // Prepare data matching backend model
       const shipmentData = {
         shipment_number: shipmentNumber,
-        device_id: formData.device_id,
+        device_id: parseInt(formData.device_id, 10) || 0,
         route: {
-          origin: origin,
-          destination: destination,
+          origin: origin.trim(),
+          destination: destination.trim(),
         },
         po_number: formData.po_number,
         ndc_number: formData.ndc_number,
-        serial_numbers: [formData.serial_number], // Backend expects array
+        serial_numbers: formData.serial_number ? [formData.serial_number] : [],
         container_number: formData.container_number,
         goods_type: formData.goods_type,
         expected_delivery_date: formData.expected_delivery_date,
@@ -100,10 +107,34 @@ export function CreateShipment() {
         status: formData.status,
       };
 
-      await shipmentApi.create(shipmentData);
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create shipment');
+      // Client-side validation
+      if (!shipmentData.device_id) {
+        throw new Error('Please enter a valid shipment number');
+      }
+      if (!shipmentData.route.origin || !shipmentData.route.destination) {
+        throw new Error('Please select a valid route');
+      }
+
+      try {
+        await shipmentApi.create(shipmentData);
+        navigate('/dashboard');
+      } catch (apiError: any) {
+        // This will be caught by the outer catch block
+        throw apiError;
+      }
+    } catch (err: any) {
+      if (err instanceof Error) {
+        setError({
+          message: err.message,
+          details: 'details' in err ? err.details : undefined
+        });
+      } else {
+        setError({
+          message: 'Failed to create shipment',
+          details: String(err)
+        });
+      }
+      console.error('Shipment creation error:', err);
     } finally {
       setLoading(false);
     }
@@ -380,8 +411,39 @@ export function CreateShipment() {
           </div>
 
           {error && (
-            <div className="p-3 rounded bg-red-500/20 border border-red-500 text-red-400">
-              {error}
+            <div className="p-4 mb-6 bg-[#1e1e2d] border-l-4 border-red-500 rounded-r">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="text-red-400 font-medium">Error</h3>
+              </div>
+              <p className="mt-1 text-white">{error.message}</p>
+              {error.details && (
+                <div className="mt-3 text-sm text-gray-300 border-t border-gray-700 pt-3">
+                  {Array.isArray(error.details) ? (
+                    <ul className="space-y-2">
+                      {error.details.map((detail: any, index: number) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-red-400 mr-2">•</span>
+                          <span>
+                            {detail.loc && (
+                              <span className="font-mono text-amber-400">{detail.loc.join('.')}: </span>
+                            )}
+                            {detail.msg || detail.message || String(detail)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : typeof error.details === 'object' ? (
+                    <pre className="mt-2 p-3 bg-[#151a2d] rounded text-sm text-gray-300 overflow-x-auto">
+                      {JSON.stringify(error.details, null, 2)}
+                    </pre>
+                  ) : (
+                    <div className="text-gray-300">{String(error.details)}</div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
