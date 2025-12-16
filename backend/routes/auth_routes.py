@@ -8,11 +8,13 @@ from pathlib import Path
 env_path = Path(__file__).resolve().parent.parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-from ..models.user_model import UserCreate, UserLogin
+from ..models.user_model import UserCreate, UserLogin, UserInDB
 from ..database import db
 from ..utils.security import (
     create_access_token,
     get_current_user,
+    verify_password,
+    get_password_hash,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 
@@ -34,9 +36,16 @@ async def verify_recaptcha(token: str) -> bool:
         return result.get("success", False)
 
 @router.post("/signup", response_model=dict)
-def signup(user: UserCreate):
-    """Register a new user."""
+async def signup(user: UserCreate):
+    """Register a new user with secure password hashing."""
     users_collection = db.get_collection("users")
+
+    # verify recaptcha
+    if not verify_recaptcha(user.recaptcha_token):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid reCAPTCHA token"
+        )
     
     # Check if user exists
     if users_collection.find_one({"email": user.email}):
@@ -45,18 +54,15 @@ def signup(user: UserCreate):
             detail="Email already registered"
         )
     
-    # In production, you should hash the password here
-    user_data = user.dict()
-    user_data["hashed_password"] = user.password  # In production, use password hashing
+    # Hash the password before storing
+    hashed_password = get_password_hash(user.password)
+    
+    # Create user data with hashed password
+    user_data = user.model_dump(exclude={"password", "recaptcha_token"})
+    user_data["hashed_password"] = hashed_password
     user_data["created_at"] = datetime.now(timezone.utc)
     
     result = users_collection.insert_one(user_data)
-
-    if not verify_recaptcha(user.recaptcha_token):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid reCAPTCHA token"
-        )
     
     return {
         "message": "User created successfully",
@@ -64,18 +70,20 @@ def signup(user: UserCreate):
     }
 
 @router.post("/login", response_model=dict)
-def login(user: UserLogin):
-    """User login and get access token."""
+async def login(user: UserLogin):
+    """User login and get access token with password verification."""
     users_collection = db.get_collection("users")
-    user_data = users_collection.find_one({"email": user.email})
 
+     # verify recaptcha
     if not verify_recaptcha(user.recaptcha_token):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid reCAPTCHA token"
         )
     
-    if not user_data or user_data.get("hashed_password") != user.password:
+    # Find user
+    user_data = users_collection.find_one({"email": user.email})
+    if not user_data or not verify_password(user.password, user_data["hashed_password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
