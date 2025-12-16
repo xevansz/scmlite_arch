@@ -36,6 +36,26 @@ interface Statistics {
   uniqueDevices: number;
 }
 
+const formatTimeSince = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  // Convert to appropriate time unit
+  if (diffInSeconds < 60) {
+    return `${diffInSeconds}s ago`;
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes}m ago`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours}h ago`;
+  } else {
+    const days = Math.floor(diffInSeconds / 86400);
+    return `${days}d ago`;
+  }
+};
+
 export function Dashboard() {
   const [shipments, setShipments] = useState<Shipment[]>([]);
   const [latestData, setLatestData] = useState<DeviceDataPoint | null>(null);
@@ -327,7 +347,7 @@ export function Dashboard() {
                     <th className="px-6 py-4 text-left text-[#8b92a7]">Device ID</th>
                         <th className="px-6 py-4 text-left text-[#8b92a7]">Route</th>
                     <th className="px-6 py-4 text-left text-[#8b92a7]">Status</th>
-                    <th className="px-6 py-4 text-left text-[#8b92a7]">Actions</th>
+                    <th className="px-6 py-4 text-left text-[#8b92a7]">Created</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1e2a45]">
@@ -343,13 +363,8 @@ export function Dashboard() {
                           {shipment.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <Link
-                          to={`/device-data/${shipment.device_id}`}
-                              className="px-4 py-2 bg-[#3b82f6] text-white rounded hover:bg-[#2563eb] transition-colors inline-block text-sm"
-                        >
-                          View Data
-                        </Link>
+                      <td className="px-6 py-4 text-[#8b92a7] text-sm">
+                        {formatTimeSince(shipment.created_at)}
                       </td>
                     </tr>
                   ))}
