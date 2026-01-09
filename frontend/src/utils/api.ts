@@ -6,6 +6,14 @@ interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
 }
 
+interface JwtPayload {
+  exp: number;
+  iat: number;
+  sub: string;
+  email: string;
+  [key: string]: any;
+}
+
 export class ApiError extends Error {
   status?: number;
   details?: any;
@@ -174,10 +182,45 @@ export const deviceApi = {
     }),
 };
 
+export const isTokenExpired = (token: string): boolean => {
+  try {
+    const { exp } = JSON.parse(atob(token.split('.')[1])) as JwtPayload;
+    const currentTime = Math.floor(Date.now() / 1000);
+    return exp < currentTime;
+  } catch (error) {
+    return true; // If there's an error decoding, treat as expired
+  }
+};
+
 export const isAuthenticated = (): boolean => {
-  return !!localStorage.getItem('auth_token');
+  const token = localStorage.getItem('auth_token');
+  if (!token) return false;
+  
+  if (isTokenExpired(token)) {
+    logout();
+    return false;
+  }
+  
+  return true;
 };
 
 export const logout = (): void => {
   localStorage.removeItem('auth_token');
+  // Redirect to login page if we're not already there
+  if (!window.location.pathname.includes('/login')) {
+    window.location.href = '/login';
+  }
 };
+
+// Check token expiration every minute
+const CHECK_INTERVAL = 60 * 2000; // 2 minute
+
+// Set up the token expiration check when the app loads
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    const token = localStorage.getItem('auth_token');
+    if (token && isTokenExpired(token)) {
+      logout();
+    }
+  }, CHECK_INTERVAL);
+}

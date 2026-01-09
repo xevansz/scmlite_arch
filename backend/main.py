@@ -40,7 +40,7 @@ async def root():
     }
 
 # Serve built frontend assets (Vite build output)
-app.mount("/", StaticFiles(directory="build", html=True), name="frontend")
+app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
 
 
 @app.exception_handler(StarletteHTTPException)
@@ -70,7 +70,7 @@ async def spa_fallback(request: Request, exc: StarletteHTTPException):
         )):
             return await http_exception_handler(request, exc)
 
-        index_file = Path("build/index.html")
+        index_file = Path("frontend/build/index.html")
         if index_file.exists():
             return HTMLResponse(index_file.read_text(encoding="utf-8"), status_code=200)
 
