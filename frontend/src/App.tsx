@@ -1,15 +1,21 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Signup } from './pages/Signup';
-import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
-import { CreateShipment } from './pages/CreateShipment';
-import { DeviceData } from './pages/DeviceData';
-import { DeviceDataPage } from './pages/DeviceDataPage';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { Signup } from "./pages/Signup";
+import { Login } from "./pages/Login";
+import { Dashboard } from "./pages/Dashboard";
+import { CreateShipment } from "./pages/CreateShipment";
+import { DeviceData } from "./pages/DeviceData";
+import { DeviceDataPage } from "./pages/DeviceDataPage";
+import { AdminDashboard } from "./pages/AdminDashboard";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/signup" element={<Signup />} />
@@ -46,7 +52,15 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }

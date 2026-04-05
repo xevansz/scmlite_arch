@@ -1,18 +1,21 @@
-import { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { authApi } from '../utils/api';
-import { ReCaptcha } from '../components/ReCaptcha';
+import { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { authApi } from "../utils/api";
+import { ReCaptcha } from "../components/ReCaptcha";
 
 export function Signup() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    full_name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    full_name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [recaptchaError, setRecaptchaError] = useState<string | null>(null);
   const recaptchaRef = useRef<any>(null);
@@ -27,12 +30,12 @@ export function Signup() {
     setMessage(null);
 
     if (formData.password !== formData.confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' });
+      setMessage({ type: "error", text: "Passwords do not match" });
       return;
     }
 
     if (!recaptchaToken) {
-      setRecaptchaError('Please verify you\'re not a robot');
+      setRecaptchaError("Please verify you're not a robot");
       return;
     }
 
@@ -44,10 +47,16 @@ export function Signup() {
         password: formData.password,
         recaptchaToken,
       });
-      setMessage({ type: 'success', text: 'Account created successfully! Redirecting to login...' });
-      setTimeout(() => navigate('/login'), 2000);
+      setMessage({
+        type: "success",
+        text: "Account created successfully! Redirecting to login...",
+      });
+      setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Signup failed' });
+      setMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Signup failed",
+      });
       // Reset reCAPTCHA on error
       recaptchaRef.current?.reset();
       setRecaptchaToken(null);
@@ -57,16 +66,23 @@ export function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-[#19254a] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="mb-8">
-          <h1 className="text-white mb-2">Signup</h1>
-          <p className="text-[#8b92a7]">Create your account to get started</p>
+          <h1 className="text-[var(--color-text)] mb-2 text-2xl font-medium">
+            Signup
+          </h1>
+          <p className="text-[var(--color-text-muted)]">
+            Create your account to get started
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="full_name" className="block text-white mb-2">
+            <label
+              htmlFor="full_name"
+              className="block text-[var(--color-text)] mb-2"
+            >
               Full Name
             </label>
             <input
@@ -74,14 +90,19 @@ export function Signup() {
               type="text"
               required
               value={formData.full_name}
-              onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+              onChange={(e) =>
+                setFormData({ ...formData, full_name: e.target.value })
+              }
+              className="w-full px-4 py-3 bg-[var(--color-surface)] border border-[var(--color-secondary)] rounded text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
               placeholder="Enter your full name"
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-white mb-2">
+            <label
+              htmlFor="email"
+              className="block text-[var(--color-text)] mb-2"
+            >
               Email Address
             </label>
             <input
@@ -89,14 +110,19 @@ export function Signup() {
               type="email"
               required
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              className="w-full px-4 py-3 bg-[var(--color-surface)] border border-[var(--color-secondary)] rounded text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
               placeholder="Enter your email"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-white mb-2">
+            <label
+              htmlFor="password"
+              className="block text-[var(--color-text)] mb-2"
+            >
               Password
             </label>
             <input
@@ -104,14 +130,19 @@ export function Signup() {
               type="password"
               required
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              className="w-full px-4 py-3 bg-[var(--color-surface)] border border-[var(--color-secondary)] rounded text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
               placeholder="Enter your password"
             />
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-white mb-2">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-[var(--color-text)] mb-2"
+            >
               Confirm Password
             </label>
             <input
@@ -119,15 +150,17 @@ export function Signup() {
               type="password"
               required
               value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              className="w-full px-4 py-3 bg-[#151d30] border border-[#1e2a45] rounded text-white placeholder-[#4a5568] focus:outline-none focus:border-[#3b82f6]"
+              onChange={(e) =>
+                setFormData({ ...formData, confirmPassword: e.target.value })
+              }
+              className="w-full px-4 py-3 bg-[var(--color-surface)] border border-[var(--color-secondary)] rounded text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-primary)]"
               placeholder="Confirm your password"
             />
           </div>
 
-          <div className='flex justify-center w-full'>
-            <ReCaptcha 
-              onChange={handleRecaptchaChange} 
+          <div className="flex justify-center w-full">
+            <ReCaptcha
+              onChange={handleRecaptchaChange}
               error={recaptchaError}
               ref={recaptchaRef}
             />
@@ -136,9 +169,9 @@ export function Signup() {
           {message && (
             <div
               className={`p-3 rounded ${
-                message.type === 'success'
-                  ? 'bg-green-500/20 border border-green-500 text-green-400'
-                  : 'bg-red-500/20 border border-red-500 text-red-400'
+                message.type === "success"
+                  ? "bg-[var(--color-success)]/20 border border-[var(--color-success)] text-[var(--color-success)]"
+                  : "bg-[var(--color-error)]/20 border border-[var(--color-error)] text-[var(--color-error)]"
               }`}
             >
               {message.text}
@@ -148,15 +181,18 @@ export function Signup() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-[#3b82f6] text-white rounded hover:bg-[#2563eb] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-[var(--color-primary)] text-[var(--color-background)] rounded hover:bg-[var(--color-accent)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
-            {loading ? 'Creating account...' : 'Create Account'}
+            {loading ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
-        <p className="text-center text-[#8b92a7] mt-6">
-          Already have an account?{' '}
-          <Link to="/login" className="text-[#3b82f6] hover:underline">
+        <p className="text-center text-[var(--color-text-muted)] mt-6">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-[var(--color-accent)] hover:underline"
+          >
             Login here
           </Link>
         </p>

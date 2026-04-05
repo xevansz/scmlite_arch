@@ -41,7 +41,7 @@ services:
   producer:
     image: firezzz/scmlite-producer:latest
     container_name: producer
-    environment:         
+    environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_TOPIC: shipment_data
       BUFFER_SIZE: 4096
@@ -72,10 +72,15 @@ services:
     container_name: backend
     ports:
       - "8000:8000"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       MONGO_URI: ${MONGO_URI}
       JWT_SECRET: ${JWT_SECRET}
       RECAPTCHA_SECRET_KEY: ${RECAPTCHA_SECRET_KEY}
+      ADMIN_MAIL: ${ADMIN_MAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     depends_on:
       - consumer
     networks:
