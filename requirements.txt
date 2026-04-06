@@ -18,6 +18,3 @@ python-jose[cryptography]
 
 # Kafka
 kafka-python
-
-# regex
-re
