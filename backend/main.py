@@ -44,7 +44,7 @@ async def root():
 
 
 # Serve built frontend assets (Vite build output)
-app.mount("/", StaticFiles(directory="frontend/build", html=True), name="frontend")
+app.mount("/", StaticFiles(directory="build", html=True), name="frontend")
 
 
 @app.exception_handler(StarletteHTTPException)
